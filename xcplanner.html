@@ -203,7 +203,6 @@ function XCLoad() {
 			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
 			markers[i] = new GMarker(center, {draggable: true, icon: icon});
 			GEvent.addListener(markers[i], "drag", XCUpdateRoute);
-			map.addOverlay(markers[i]);
 		}
 		XCResetMarkers();
 		XCUpdateFlightType();
