@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+		<title>XC Planner</title>
+		<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAmoyS70qBKY-s72ZC4TaYjBT2yXp_ZAY8_ufC3CFXhHIE1NvwkxTaKKlB6EIqEuXqoufaOaKPR7O_6Q" type="text/javascript"></script>
+		<script src="mapiconmaker.js" type="text/javascript"></script>
+		<script src="prototype-1.6.0.3.js" type="text/javascript"></script>
+		<script type="text/javascript">
+
+var R = 6371000.0;
+var center = new GLatLng(45.8535222222, 6.2235);
+var zoom = 10;
+var markers = [];
+var map = null;
+var polyline = null;
+var league = "cfd";
+var n = 2;
+var circuit = false;
+
+Object.extend(Array.prototype, {
+	toTR: function() {
+		var tr = new Element("tr");
+		this.each(function(element, index) {
+			tr.appendChild(new Element("td").update(element));
+		})
+		return tr;
+	}
+});
+
+var Route = Class.create({
+	initialize: function(league, latlngs, circuit) {
+		this.league = league;
+		this.latlngs = latlngs;
+		this.n = this.latlngs.length;
+		this.circuit = circuit;
+		this.distances = []
+		for (var i = 1; i < this.n; ++i) {
+			this.distances.push(this.latlngs[i].distanceFrom(this.latlngs[i - 1]));
+		}
+		if (this.circuit) {
+			this.distances.push(this.latlngs[0].distanceFrom(this.latlngs[this.n - 1]));
+		}
+		this.distance = this.distances.inject(0.0, function(a, x) { return a + x; });
+		this.description = "Open distance";
+		this.multiplier = 1.0;
+		this.glow = false;
+		if (this.league == "cfd") {
+			if (this.circuit) {
+				if (this.n == 2) {
+					this.description = "Parcours en aller-retour";
+					this.multiplier = 1.2;
+				} else if (this.n == 3) {
+					if (this.distances.min() / this.distance >= 0.28) {
+						this.description = "Triangle FAI";
+						this.multiplier = 1.4;
+						this.glow = true;
+					} else {
+						this.description = "Triangle plat";
+						this.multiplier = 1.2;
+					}
+				} else if (this.n == 4) {
+					if (this.distances.min() / this.distance >= 0.15) {
+						this.description = "Quadrilatere";
+						this.multiplier = 1.2;
+					} else {
+						this.multiplier = 0.0;
+					}
+				} else {
+					this.multiplier = 0.0;
+				}
+			} else {
+				if (2 <= this.n && this.n <= 4) {
+					this.description = "Distance libre";
+					this.multiplier = 1.0;
+				} else {
+					this.multiplier = 0.0;
+				}
+			}
+			if (this.multiplier == 0.0) {
+				this.description = "Non valide";
+			}
+		} else if (this.league == "xcontest") {
+			if (this.circuit) {
+				if (this.n == 3) {
+					if (this.distances.min() / this.distance >= 0.28) {
+						this.description = "FAI triangle";
+						this.multiplier = 1.4;
+						this.glow = true;
+					} else {
+						this.description = "Flat triangle";
+						this.multiplier = 1.2;
+					}
+				} else {
+					this.multiplier = 0.0;
+				}
+			} else {
+				if (2 <= this.n && this.n <= 5) {
+					this.description = "Free flight";
+					this.multiplier = 1.0;
+				} else {
+					this.multiplier = 0.0;
+				}
+			}
+			if (this.multiplier == 0.0) {
+				this.description = "Invalid";
+			}
+		}
+	},
+	legToTR: function(i, j) {
+		var fields = [new Element("b").update("TP" + (i + 1).toString() + "&rarr;TP" + (j + 1).toString() + ":"),
+			      (this.distances[i] / 1000.0).toFixed(2) + "km"];
+		if (this.distance != 0.0) {
+			fields.push((100.0 * this.distances[i] / this.distance).toFixed(1) + "%");
+		}
+		return fields.toTR();
+	},
+	toHTML: function() {
+		var table = new Element("table");
+		for (var i = 1; i < this.n; ++i) {
+			table.appendChild(this.legToTR(i - 1, i));
+		}
+		if (this.circuit) {
+			table.appendChild(this.legToTR(this.n - 1, 0));
+		}
+		return table;
+	},
+	turnpointsToHTML: function() {
+		var table = new Element("table");
+		this.latlngs.each(function(latlng, index) {
+			var tr = [new Element("b").update("TP" + (index + 1).toString() + ":"),
+			          latlng.lat().toFixed(5), latlng.lng().toFixed(5)].toTR();
+			table.appendChild(tr);	
+		});
+		return table;
+	},
+	toPolyline: function() {
+		if (this.circuit) {
+			var latlngs = this.latlngs.clone();
+			latlngs.push(latlngs[0]);
+		} else {
+			var latlngs = this.latlngs;
+		}
+		if (this.glow) {
+			var color = "#ffff00";
+		} else if (this.multiplier == 0.0) {
+			var color = "#ff0000";
+		} else {
+			var color = "#00ff00";
+		}
+		return new GPolyline(latlngs, color, 4, 0.75);
+	}
+});
+
+function XCUpdateRoute() {
+	var latlngs = $R(0, n - 1).map(function(i) { return markers[i].getLatLng(); });
+	var route = new Route(league, latlngs, circuit);
+	$("description").update(route.description);
+	$("distance").update((route.distance / 1000).toFixed(2) + "km");
+	$("multiplier").update(route.multiplier.toFixed(2));
+	$("score").update((route.multiplier * route.distance / 1000).toFixed(2) + " points");
+	$("route").update(route.toHTML());
+	$("turnpoints").update(route.turnpointsToHTML());
+	if (polyline) {
+		map.removeOverlay(polyline);
+	}
+	polyline = route.toPolyline();
+	map.addOverlay(polyline);
+}
+
+function XCUpdateFlightType() {
+	var fields = $F("flightType").split(/,/);
+	league = fields[0];
+	n = new Number(fields[1]);
+	markers.each(function(marker, index) {
+		if (index < n) {
+			map.addOverlay(marker);
+		} else {
+			map.removeOverlay(marker);
+		}
+	});
+	circuit = fields[2] == "true";
+}
+
+function XCResetMarkers() {
+	var bounds = map.getBounds();
+	var sw = bounds.getSouthWest();
+	var ne = bounds.getNorthEast();
+	for (var i = 0 ; i < 5; ++i) {
+		var lat = sw.lat() + [2, 2, 1, 1, 1.5][i] * (ne.lat() - sw.lat()) / 3;
+		var lng = sw.lng() + [1, 2, 2, 1, 1.5][i] * (ne.lng() - sw.lng()) / 3;
+		markers[i].setLatLng(new GLatLng(lat, lng));
+	}
+}
+
+function XCLoad() {
+	if (GBrowserIsCompatible()) {
+		map = new GMap2(document.getElementById("map"));
+		map.setCenter(center, zoom);
+		map.setUIToDefault();
+		map.setMapType(G_PHYSICAL_MAP);
+		for (var i = 0; i < 5; ++i) {
+			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
+			markers[i] = new GMarker(center, {draggable: true, icon: icon});
+			GEvent.addListener(markers[i], "drag", XCUpdateRoute);
+			map.addOverlay(markers[i]);
+		}
+		XCResetMarkers();
+		XCUpdateFlightType();
+		XCUpdateRoute();
+	}
+}
+
+function XCUnload() {
+	map = null;
+	markers = null;
+	polyline = null;
+	GUnload();
+}
+
+		</script>
+	</head>
+	<body onload="XCLoad()" onunload="XCUnload()">
+		<table>
+			<tr>
+				<td rowspan="2" valign="top" width="240px">
+					<p>
+						<span id="distance" style="font-size: 36px;">0.0km</span><br/>
+						<span id="description">Open distance</span> (&times;<span id="multiplier">1.0</span>)<br/>
+						<span id="score" style="font-size: 24px;">0.0 points</span>
+					</p>
+					<p>
+						<b>Route:</b><br/>
+						<span id="route"></span>
+					</p>
+					<p>
+						<b>Turnpoints:</b><br/>
+						<span id="turnpoints"></span>
+					</p>
+					<p>
+						<b>Instructions:</b><br/>
+						<span style="font-size: 12px">Choose the type of flight you want to plan using the drop-down menu.
+						Drag the markers around to choose your turnpoints.
+						Press the "Reset" button to reset the markers on the area of the map that you are looking at.</span>
+					</p>
+					<p>
+						Copyright &copy; Tom Payne, <a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>, 2009
+					</p>
+				</td>
+				<td>
+					<select id="flightType" onchange="XCUpdateFlightType(); XCUpdateRoute();">
+						<option value="cfd,2,false">CFD: distance libre sans point de contournement</option>
+						<option value="cfd,3,false">CFD: distance libre via un point de contournement</option>
+						<option value="cfd,4,false">CFD: distance libre via deux points de contournement</option>
+						<option value="cfd,2,true">CFD: aller-retour</option>
+						<option selected="true" value="cfd,3,true">CFD: triangle plat ou FAI</option>
+						<option value="cfd,4,true">CFD: quadrilatere</option>
+						<option value="xcontest,2,false">XContest: free flight</option>
+						<option value="xcontest,3,false">XContest: free flight via a turnpoint</option>
+						<option value="xcontest,4,false">XContest: free flight via two turnpoints</option>
+						<option value="xcontest,5,false">XContest: free flight via three turnpoints</option>
+						<option value="xcontest,3,true">XContest: flat or FAI triangle </option>
+					</select>
+					<input id="reset" value="Reset" type="submit" onclick="XCResetMarkers(); XCUpdateRoute();" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<div id="map" style="width: 800px; height: 600px"></div>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
