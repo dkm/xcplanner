@@ -36,10 +36,10 @@ var Route = Class.create({
 		this.circuit = circuit;
 		this.distances = []
 		for (var i = 1; i < this.n; ++i) {
-			this.distances.push(this.latlngs[i].distanceFrom(this.latlngs[i - 1]));
+			this.distances.push(this.latlngs[i].distanceFrom(this.latlngs[i - 1], R));
 		}
 		if (this.circuit) {
-			this.distances.push(this.latlngs[0].distanceFrom(this.latlngs[this.n - 1]));
+			this.distances.push(this.latlngs[0].distanceFrom(this.latlngs[this.n - 1], R));
 		}
 		this.distance = this.distances.inject(0.0, function(a, x) { return a + x; });
 		this.description = "Open distance";
