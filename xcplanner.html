@@ -182,7 +182,7 @@ function XCUpdateFlightType() {
 	circuit = fields[2] == "true";
 }
 
-function XCResetMarkers() {
+function XCResetTurnpoints() {
 	var bounds = map.getBounds();
 	var sw = bounds.getSouthWest();
 	var ne = bounds.getNorthEast();
@@ -204,7 +204,7 @@ function XCLoad() {
 			markers[i] = new GMarker(center, {draggable: true, icon: icon});
 			GEvent.addListener(markers[i], "drag", XCUpdateRoute);
 		}
-		XCResetMarkers();
+		XCResetTurnpoints();
 		XCUpdateFlightType();
 		XCUpdateRoute();
 	}
@@ -260,7 +260,7 @@ function XCUnload() {
 						<option value="xcontest,5,false">XContest: free flight via three turnpoints</option>
 						<option value="xcontest,3,true">XContest: flat or FAI triangle </option>
 					</select>
-					<input id="reset" value="Reset" type="submit" onclick="XCResetMarkers(); XCUpdateRoute();" />
+					<input value="Reset turnpoints" type="submit" onclick="XCResetTurnpoints(); XCUpdateRoute();" />
 				</td>
 			</tr>
 			<tr>
