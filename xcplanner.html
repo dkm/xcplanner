@@ -9,8 +9,9 @@
 		<script type="text/javascript">
 
 var R = 6371000.0;
-var center = new GLatLng(45.8535222222, 6.2235);
+var center = new GLatLng(45.8512179, 6.2123425);
 var zoom = 10;
+var geocoder = null;
 var markers = [];
 var map = null;
 var polyline = null;
@@ -154,6 +155,14 @@ var Route = Class.create({
 	}
 });
 
+function XCGoto() {
+	if (geocoder == null)
+		geocoder = new GClientGeocoder();
+	if (geocoder) {
+		geocoder.getLatLng($F("location"), XCSetCenter);
+	}
+}
+
 function XCUpdateRoute() {
 	var latlngs = $R(0, n - 1).map(function(i) { return markers[i].getLatLng(); });
 	var route = new Route(league, latlngs, circuit);
@@ -184,35 +193,40 @@ function XCUpdateFlightType() {
 	circuit = fields[2] == "true";
 }
 
-function XCResetTurnpoints() {
-	var bounds = map.getBounds();
-	var sw = bounds.getSouthWest();
-	var ne = bounds.getNorthEast();
-	markers.each(function(marker, index) {
-		var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
-		var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
-		marker.setLatLng(new GLatLng(lat, lng));
-	});
+function XCSetCenter(latlng) {
+	if (latlng) {
+		map.setCenter(latlng, zoom);
+		var bounds = map.getBounds();
+		var sw = bounds.getSouthWest();
+		var ne = bounds.getNorthEast();
+		markers.each(function(marker, index) {
+			var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
+			var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
+			marker.setLatLng(new GLatLng(lat, lng));
+		});
+		XCUpdateRoute();
+	}
 }
 
 function XCLoad() {
 	if (GBrowserIsCompatible()) {
 		map = new GMap2(document.getElementById("map"));
-		map.setCenter(center, zoom);
+		map.setCenter(new GLatLng(0, 0), zoom);
 		map.setUIToDefault();
 		map.setMapType(G_PHYSICAL_MAP);
 		for (var i = 0; i < 5; ++i) {
 			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
-			markers[i] = new GMarker(center, {draggable: true, icon: icon});
+			markers[i] = new GMarker(new GLatLng(0, 0), {draggable: true, icon: icon});
 			GEvent.addListener(markers[i], "drag", XCUpdateRoute);
 		}
-		XCResetTurnpoints();
+		XCGoto();
 		XCUpdateFlightType();
 		XCUpdateRoute();
 	}
 }
 
 function XCUnload() {
+	geocoder = null;
 	map = null;
 	markers = null;
 	polyline = null;
@@ -249,20 +263,23 @@ function XCUnload() {
 					</p>
 				</td>
 				<td>
-					<select id="flightType" onchange="XCUpdateFlightType(); XCUpdateRoute();">
-						<option value="cfd,2,false">CFD: distance libre sans point de contournement</option>
-						<option value="cfd,3,false">CFD: distance libre via un point de contournement</option>
-						<option value="cfd,4,false">CFD: distance libre via deux points de contournement</option>
-						<option value="cfd,2,true">CFD: aller-retour</option>
-						<option selected="true" value="cfd,3,true">CFD: triangle plat ou FAI</option>
-						<option value="cfd,4,true">CFD: quadrilatere</option>
-						<option value="xcontest,2,false">XContest: free flight</option>
-						<option value="xcontest,3,false">XContest: free flight via a turnpoint</option>
-						<option value="xcontest,4,false">XContest: free flight via two turnpoints</option>
-						<option value="xcontest,5,false">XContest: free flight via three turnpoints</option>
-						<option value="xcontest,3,true">XContest: flat or FAI triangle </option>
-					</select>
-					<input value="Reset turnpoints" type="submit" onclick="XCResetTurnpoints(); XCUpdateRoute();" />
+					<form action="#" onsubmit="return false;">
+						<input id="location" type="text" value="Doussard, France" />
+						<input value="Go!" type="submit" onclick="XCGoto();" />
+						<select id="flightType" onchange="XCUpdateFlightType(); XCUpdateRoute();">
+							<option value="cfd,2,false">CFD: distance libre sans point de contournement</option>
+							<option value="cfd,3,false">CFD: distance libre via un point de contournement</option>
+							<option value="cfd,4,false">CFD: distance libre via deux points de contournement</option>
+							<option value="cfd,2,true">CFD: aller-retour</option>
+							<option selected="true" value="cfd,3,true">CFD: triangle plat ou FAI</option>
+							<option value="cfd,4,true">CFD: quadrilatere</option>
+							<option value="xcontest,2,false">XContest: free flight</option>
+							<option value="xcontest,3,false">XContest: free flight via a turnpoint</option>
+							<option value="xcontest,4,false">XContest: free flight via two turnpoints</option>
+							<option value="xcontest,5,false">XContest: free flight via three turnpoints</option>
+							<option value="xcontest,3,true">XContest: flat or FAI triangle </option>
+						</select>
+					</form>
 				</td>
 			</tr>
 			<tr>
