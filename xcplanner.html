@@ -186,11 +186,11 @@ function XCResetTurnpoints() {
 	var bounds = map.getBounds();
 	var sw = bounds.getSouthWest();
 	var ne = bounds.getNorthEast();
-	for (var i = 0 ; i < 5; ++i) {
-		var lat = sw.lat() + [2, 2, 1, 1, 1.5][i] * (ne.lat() - sw.lat()) / 3;
-		var lng = sw.lng() + [1, 2, 2, 1, 1.5][i] * (ne.lng() - sw.lng()) / 3;
-		markers[i].setLatLng(new GLatLng(lat, lng));
-	}
+	markers.each(function(marker, index) {
+		var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
+		var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
+		marker.setLatLng(new GLatLng(lat, lng));
+	});
 }
 
 function XCLoad() {
