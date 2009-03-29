@@ -2,3 +2,5 @@ Clicking on Route should fit map to route
 Clicking on a Turnpoint should zoom in on that turnpoint
 FAI Triangle quality measure (min/0.28)
 FAI Triangle locus
+Search bar to go to other locations quickly
+Default location specifyable in query params
