@@ -194,6 +194,18 @@ function XCUpdateFlightType() {
 }
 
 function XCSetCenter(latlng) {
+	if (map == null) {
+		map = new GMap2(document.getElementById("map"));
+		map.setCenter(latlng || new GLatLng(0, 0), zoom);
+		map.setUIToDefault();
+		map.setMapType(G_PHYSICAL_MAP);
+		for (var i = 0; i < 5; ++i) {
+			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
+			markers[i] = new GMarker(latlng || new GLatLng(0, 0), {draggable: true, icon: icon});
+			GEvent.addListener(markers[i], "drag", XCUpdateRoute);
+		}
+		XCUpdateFlightType();
+	}
 	if (latlng) {
 		map.setCenter(latlng, zoom);
 		var bounds = map.getBounds();
@@ -210,18 +222,7 @@ function XCSetCenter(latlng) {
 
 function XCLoad() {
 	if (GBrowserIsCompatible()) {
-		map = new GMap2(document.getElementById("map"));
-		map.setCenter(new GLatLng(0, 0), zoom);
-		map.setUIToDefault();
-		map.setMapType(G_PHYSICAL_MAP);
-		for (var i = 0; i < 5; ++i) {
-			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
-			markers[i] = new GMarker(new GLatLng(0, 0), {draggable: true, icon: icon});
-			GEvent.addListener(markers[i], "drag", XCUpdateRoute);
-		}
 		XCGoto();
-		XCUpdateFlightType();
-		XCUpdateRoute();
 	}
 }
 
