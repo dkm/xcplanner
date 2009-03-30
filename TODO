@@ -1,5 +1,4 @@
 Clicking on Route should fit map to route
 FAI Triangle quality measure (min/0.28)
 FAI Triangle locus
-Search bar to go to other locations quickly
-Default location specifyable in query params
+Separate out reset turnpoints button
