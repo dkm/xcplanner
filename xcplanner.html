@@ -160,30 +160,35 @@ function XCGoto() {
 	}
 }
 
+function XCResetTurnpoints() {
+	var bounds = map.getBounds();
+	var sw = bounds.getSouthWest();
+	var ne = bounds.getNorthEast();
+	markers.each(function(marker, index) {
+		var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
+		var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
+		marker.setLatLng(new GLatLng(lat, lng));
+	});
+}
+
 function XCSetCenter(latlng) {
 	if (map == null) {
 		map = new GMap2(document.getElementById("map"));
 		map.setCenter(latlng || new GLatLng(0, 0), zoom);
 		map.setUIToDefault();
 		map.setMapType(G_PHYSICAL_MAP);
+	} else if (latlng) {
+		map.setCenter(latlng, zoom);
+	}
+	if (markers == null) {
 		markers = $R(0, 4).map(function(i) {
 			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
 			marker = new GMarker(latlng || new GLatLng(0, 0), {draggable: true, icon: icon});
 			GEvent.addListener(marker, "drag", XCUpdateRoute);
 			return marker;
 		});
+		XCResetTurnpoints();
 		XCUpdateFlightType();
-	}
-	if (latlng) {
-		map.setCenter(latlng, zoom);
-		var bounds = map.getBounds();
-		var sw = bounds.getSouthWest();
-		var ne = bounds.getNorthEast();
-		markers.each(function(marker, index) {
-			var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
-			var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
-			marker.setLatLng(new GLatLng(lat, lng));
-		});
 		XCUpdateRoute();
 	}
 }
@@ -282,6 +287,7 @@ function XCUnload() {
 								<option value="xcontest,5,false">Free flight via three turnpoints</option>
 								<option value="xcontest,3,true">Flat or FAI triangle </option>
 							</optgroup>
+						<input value="Reset turnpoints" type="submit" onclick="XCResetTurnpoints(); XCUpdateRoute();" />
 						</select>
 					</form>
 				</td>
