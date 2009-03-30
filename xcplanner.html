@@ -9,15 +9,14 @@
 		<script type="text/javascript">
 
 var R = 6371000.0;
-var center = new GLatLng(45.8512179, 6.2123425);
 var zoom = 10;
 var geocoder = null;
-var markers = [];
 var map = null;
+var markers = null;
 var polyline = null;
-var league = "cfd";
-var n = 2;
-var circuit = false;
+var league = null;
+var n = null;
+var circuit = null;
 
 Object.extend(Array.prototype, {
 	toTR: function() {
@@ -156,11 +155,51 @@ var Route = Class.create({
 });
 
 function XCGoto() {
-	if (geocoder == null)
-		geocoder = new GClientGeocoder();
 	if (geocoder) {
 		geocoder.getLatLng($F("location"), XCSetCenter);
 	}
+}
+
+function XCSetCenter(latlng) {
+	if (map == null) {
+		map = new GMap2(document.getElementById("map"));
+		map.setCenter(latlng || new GLatLng(0, 0), zoom);
+		map.setUIToDefault();
+		map.setMapType(G_PHYSICAL_MAP);
+		markers = $R(0, 4).map(function(i) {
+			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
+			marker = new GMarker(latlng || new GLatLng(0, 0), {draggable: true, icon: icon});
+			GEvent.addListener(marker, "drag", XCUpdateRoute);
+			return marker;
+		});
+		XCUpdateFlightType();
+	}
+	if (latlng) {
+		map.setCenter(latlng, zoom);
+		var bounds = map.getBounds();
+		var sw = bounds.getSouthWest();
+		var ne = bounds.getNorthEast();
+		markers.each(function(marker, index) {
+			var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
+			var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
+			marker.setLatLng(new GLatLng(lat, lng));
+		});
+		XCUpdateRoute();
+	}
+}
+
+function XCUpdateFlightType() {
+	var fields = $F("flightType").split(/,/);
+	league = fields[0];
+	n = new Number(fields[1]);
+	markers.each(function(marker, index) {
+		if (index < n) {
+			map.addOverlay(marker);
+		} else {
+			map.removeOverlay(marker);
+		}
+	});
+	circuit = fields[2] == "true";
 }
 
 function XCUpdateRoute() {
@@ -179,49 +218,9 @@ function XCUpdateRoute() {
 	map.addOverlay(polyline);
 }
 
-function XCUpdateFlightType() {
-	var fields = $F("flightType").split(/,/);
-	league = fields[0];
-	n = new Number(fields[1]);
-	markers.each(function(marker, index) {
-		if (index < n) {
-			map.addOverlay(marker);
-		} else {
-			map.removeOverlay(marker);
-		}
-	});
-	circuit = fields[2] == "true";
-}
-
-function XCSetCenter(latlng) {
-	if (map == null) {
-		map = new GMap2(document.getElementById("map"));
-		map.setCenter(latlng || new GLatLng(0, 0), zoom);
-		map.setUIToDefault();
-		map.setMapType(G_PHYSICAL_MAP);
-		for (var i = 0; i < 5; ++i) {
-			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
-			markers[i] = new GMarker(latlng || new GLatLng(0, 0), {draggable: true, icon: icon});
-			GEvent.addListener(markers[i], "drag", XCUpdateRoute);
-		}
-		XCUpdateFlightType();
-	}
-	if (latlng) {
-		map.setCenter(latlng, zoom);
-		var bounds = map.getBounds();
-		var sw = bounds.getSouthWest();
-		var ne = bounds.getNorthEast();
-		markers.each(function(marker, index) {
-			var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
-			var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
-			marker.setLatLng(new GLatLng(lat, lng));
-		});
-		XCUpdateRoute();
-	}
-}
-
 function XCLoad() {
 	if (GBrowserIsCompatible()) {
+		geocoder = new GClientGeocoder();
 		XCGoto();
 	}
 }
