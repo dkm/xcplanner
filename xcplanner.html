@@ -77,7 +77,7 @@ var Route = Class.create({
 					}
 				} else if (this.n == 4) {
 					if (this.distances.min() / this.distance >= 0.15 && isConvex(this.latlngs)) {
-						this.description = "Quadrilatere";
+						this.description = "Quadrilatère";
 						this.multiplier = 1.2;
 					} else {
 						this.multiplier = 0.0;
@@ -294,7 +294,7 @@ function XCUnload() {
 								<option value="cfd,4,false">Distance libre via deux points de contournement</option>
 								<option value="cfd,2,true">Aller-retour</option>
 								<option selected="true" value="cfd,3,true">Triangle plat ou FAI</option>
-								<option value="cfd,4,true">Quadrilatere</option>
+								<option value="cfd,4,true">Quadrilatère</option>
 							</optgroup>
 							<optgroup label="XContest">
 								<option value="xcontest,2,false">Free flight</option>
