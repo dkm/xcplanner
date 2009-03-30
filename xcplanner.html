@@ -28,25 +28,20 @@ Object.extend(Array.prototype, {
 	}
 });
 
-function sign(x) {
-	if (x < 0) {
-		return -1;
-	} else if (x == 0) {
-		return 0;
-	} else {
-		return 1;
-	}
-}
-
 function isConvex(latlngs) {
 	var prev = latlngs[latlngs.length - 1];
-	var count = [0, 0, 0];
-	latlngs.each(function(latlng) {
-		var delta = latlng.lat() * prev.lon() - latlng.lon() * prev.lat();
-		++count[sign(delta) + 1];
+	var deltas = latlngs.map(function(latlng) {
+		var delta = new GLatLng(latlng.lat() - prev.lat(), latlng.lng() - prev.lng());
 		prev = latlng;
+		return delta;
 	});
-	return count[0] == latlngs.length || count[2] == latlngs.length;
+	var prev = deltas[deltas.length - 1];
+	var cross_products = deltas.map(function(delta) {
+		cross_product = delta.lat() * prev.lng() - delta.lng() * prev.lat();
+		prev = delta;
+		return cross_product;
+	});
+	return cross_products.max() < 0 || 0 < cross_products.min();
 }
 
 var Route = Class.create({
@@ -81,7 +76,7 @@ var Route = Class.create({
 						this.multiplier = 1.2;
 					}
 				} else if (this.n == 4) {
-					if (this.distances.min() / this.distance >= 0.15 && isConvex(this.latlngs())) {
+					if (this.distances.min() / this.distance >= 0.15 && isConvex(this.latlngs)) {
 						this.description = "Quadrilatere";
 						this.multiplier = 1.2;
 					} else {
