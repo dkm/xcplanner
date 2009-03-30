@@ -1,5 +1,6 @@
 var R = 6371000.0;
 var zoom = 10;
+var declared = false;
 var geocoder = null;
 var map = null;
 var markers = null;
@@ -85,6 +86,61 @@ var Route = Class.create({
 			}
 			if (this.multiplier == 0.0) {
 				this.description = "Non valide";
+			}
+		} else if (this.league == "ukxcl-national") {
+			if (this.circuit) {
+				if (this.n == 2) {
+					this.description = "Out and return";
+					if (this.distance >= 25000.0 && declared) {
+						this.multiplier = 2.5;
+					} else if (this.distance > 25000.0) {
+						this.multiplier = 2.0;
+					} else {
+						this.multiplier = 1.5;
+					}
+				} else if (this.n == 3) {
+					if (this.distances.min() / this.distance >= 0.28) {
+						this.description = "FAI triangle";
+						if (this.distance >= 25000.0 && declared) {
+							this.multiplier = 3.75;
+						} else if (this.distance >= 25000.0) {
+							this.multiplier = 2.7;
+						} else {
+							this.multiplier = 2.0;
+						}
+						this.glow = true;
+					} else {
+						this.description = "Flat triangle";
+						if (this.distance >= 20000.0) {
+							this.multiplier = 2.0;
+						} else {
+							this.multiplier = 1.5;
+						}
+					g
+				} else {
+					this.multiplier = 0.0;
+				}
+			} else {
+				if (this.n == 2) {
+					if (this.distance >= 10000.0) {
+						this.multiplier = declared ? 1.25 : 1.0;
+					} else {
+						this.multiplier = 0.0;
+					}
+				} else if (3 <= this.n && this.n <= 5) {
+					this.description = "Turnpoint flight";
+					if (this.distance >= 15000.0) {
+						this.multiplier = declared ? 1.25 : 1.0;
+					} else {
+						this.multiplier = 0.0;
+					}
+					this.multiplier = this.distance >1.0;
+				} else {
+					this.multiplier = 0.0;
+				}
+			}
+			if (this.multiplier == 0.0) {
+				this.description = "Invalid";
 			}
 		} else if (this.league == "xcontest") {
 			if (this.circuit) {
