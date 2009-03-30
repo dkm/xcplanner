@@ -28,6 +28,27 @@ Object.extend(Array.prototype, {
 	}
 });
 
+function sign(x) {
+	if (x < 0) {
+		return -1;
+	} else if (x == 0) {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+function isConvex(latlngs) {
+	var prev = latlngs[latlngs.length - 1];
+	var count = [0, 0, 0];
+	latlngs.each(function(latlng) {
+		var delta = latlng.lat() * prev.lon() - latlng.lon() * prev.lat();
+		++count[sign(delta) + 1];
+		prev = latlng;
+	});
+	return count[0] == latlngs.length || count[2] == latlngs.length;
+}
+
 var Route = Class.create({
 	initialize: function(league, latlngs, circuit) {
 		this.league = league;
@@ -60,7 +81,7 @@ var Route = Class.create({
 						this.multiplier = 1.2;
 					}
 				} else if (this.n == 4) {
-					if (this.distances.min() / this.distance >= 0.15) {
+					if (this.distances.min() / this.distance >= 0.15 && isConvex(this.latlngs())) {
 						this.description = "Quadrilatere";
 						this.multiplier = 1.2;
 					} else {
