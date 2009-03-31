@@ -268,7 +268,7 @@ function XCResetTurnpoints() {
 
 function XCSetCenter(latlng) {
 	if (map == null) {
-		map = new GMap2(document.getElementById("map"));
+		map = new GMap2($("map"));
 		map.setCenter(latlng || new GLatLng(0, 0), zoom);
 		map.setUIToDefault();
 		map.setMapType(G_PHYSICAL_MAP);
