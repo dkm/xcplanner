@@ -14,7 +14,7 @@ Object.extend(Array.prototype, {
 		var tr = new Element("tr");
 		this.each(function(element, index) {
 			tr.appendChild(new Element("td").update(element));
-		})
+		});
 		return tr;
 	}
 });
