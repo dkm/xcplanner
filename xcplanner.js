@@ -52,7 +52,7 @@ function formatLatLng(latlng) {
 		var result = [];
 		result = result.concat(formatter(Math.abs(latlng.lat())));
 		result.push(latlng.lat() < 0.0 ? "S" : "N");
-	       	result = result.concat(formatter(Math.abs(latlng.lng())));
+		result = result.concat(formatter(Math.abs(latlng.lng())));
 		result.push(latlng.lng() < 0.0 ? "E" : "W");
 		return result;
 	}
