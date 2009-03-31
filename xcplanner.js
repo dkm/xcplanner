@@ -19,6 +19,45 @@ Object.extend(Array.prototype, {
 	}
 });
 
+function formatLatLng(latlng) {
+	var coordFormat = $F("coordFormat");
+	if (coordFormat == "utm") {
+		var utmref = new LatLng(latlng.lat(), latlng.lng()).toUTMRef();
+		return [utmref.lngZone + utmref.latZone, utmref.easting.toFixed(0), utmref.northing.toFixed(0)];
+	} else if (coordFormat == "os") {
+		var ll = new LatLng(latlng.lat(), latlng.lng());
+		ll.WGS84ToOSGB36();
+		return [ll.toOSRef().toSixFigureString()];
+	} else {
+		var formatter = Prototype.K;
+		if (coordFormat == "d") {
+			formatter = function(deg) {
+				return [deg.toFixed(5) + "&deg;"];
+			};
+		} else if (coordFormat == "dm") {
+			formatter = function(deg) {
+				var d = parseInt(deg);
+				var min = 60 * (deg - d);
+				return [d.toString() + "&deg;", min.toFixed(3) + "&prime;"];
+			};
+		} else if (coordFormat == "dms") {
+			formatter = function(deg) {
+				var d = parseInt(deg);
+				var min = 60 * (deg - d);
+				var m = parseInt(min);
+				var sec = 60 * (min - m);
+				return [d.toString() + "&deg;", m.toString() + "&prime;", sec.toFixed(0) + "&Prime;"];
+			};
+		}
+		var result = [];
+		result = result.concat(formatter(Math.abs(latlng.lat())));
+		result.push(latlng.lat() < 0.0 ? "S" : "N");
+	       	result = result.concat(formatter(Math.abs(latlng.lng())));
+		result.push(latlng.lng() < 0.0 ? "E" : "W");
+		return result;
+	}
+}
+
 function isConvex(latlngs) {
 	var prev = latlngs[latlngs.length - 1];
 	var deltas = latlngs.map(function(latlng) {
@@ -187,8 +226,7 @@ var Route = Class.create({
 		this.latlngs.each(function(latlng, index) {
 			var a = new Element("a", {onclick: "map.setCenter(new GLatLng(" + latlng.lat() + ", " + latlng.lng() + "), 13)"});
 			a.appendChild(new Element("b").update("TP" + (index + 1).toString() + ":"));
-			var tr = [a,
-			          latlng.lat().toFixed(5), latlng.lng().toFixed(5)].toTR();
+			var tr = [a].concat(formatLatLng(latlng)).toTR();
 			table.appendChild(tr);	
 		});
 		return table;
