@@ -116,7 +116,7 @@ var Route = Class.create({
 						} else {
 							this.multiplier = 1.5;
 						}
-					g
+					}
 				} else {
 					this.multiplier = 0.0;
 				}
