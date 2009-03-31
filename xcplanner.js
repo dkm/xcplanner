@@ -14,10 +14,49 @@ Object.extend(Array.prototype, {
 		var tr = new Element("tr");
 		this.each(function(element, index) {
 			tr.appendChild(new Element("td").update(element));
-		})
+		});
 		return tr;
 	}
 });
+
+function formatLatLng(latlng) {
+	var coordFormat = $F("coordFormat");
+	if (coordFormat == "utm") {
+		var utmref = new LatLng(latlng.lat(), latlng.lng()).toUTMRef();
+		return [utmref.lngZone + utmref.latZone, utmref.easting.toFixed(0), utmref.northing.toFixed(0)];
+	} else if (coordFormat == "os") {
+		var ll = new LatLng(latlng.lat(), latlng.lng());
+		ll.WGS84ToOSGB36();
+		return [ll.toOSRef().toSixFigureString()];
+	} else {
+		var formatter = Prototype.K;
+		if (coordFormat == "d") {
+			formatter = function(deg) {
+				return [deg.toFixed(5) + "&deg;"];
+			};
+		} else if (coordFormat == "dm") {
+			formatter = function(deg) {
+				var d = parseInt(deg);
+				var min = 60 * (deg - d);
+				return [d.toString() + "&deg;", min.toFixed(3) + "&prime;"];
+			};
+		} else if (coordFormat == "dms") {
+			formatter = function(deg) {
+				var d = parseInt(deg);
+				var min = 60 * (deg - d);
+				var m = parseInt(min);
+				var sec = 60 * (min - m);
+				return [d.toString() + "&deg;", m.toString() + "&prime;", sec.toFixed(0) + "&Prime;"];
+			};
+		}
+		var result = [];
+		result = result.concat(formatter(Math.abs(latlng.lat())));
+		result.push(latlng.lat() < 0.0 ? "S" : "N");
+	       	result = result.concat(formatter(Math.abs(latlng.lng())));
+		result.push(latlng.lng() < 0.0 ? "E" : "W");
+		return result;
+	}
+}
 
 function isConvex(latlngs) {
 	var prev = latlngs[latlngs.length - 1];
@@ -49,8 +88,8 @@ var Route = Class.create({
 			this.distances.push(this.latlngs[0].distanceFrom(this.latlngs[this.n - 1], R));
 		}
 		this.distance = this.distances.inject(0.0, function(a, x) { return a + x; });
-		this.description = "Open distance";
-		this.multiplier = 1.0;
+		this.description = "Invalid";
+		this.multiplier = 0.0;
 		this.glow = false;
 		if (this.league == "cfd") {
 			if (this.circuit) {
@@ -70,77 +109,79 @@ var Route = Class.create({
 					if (this.distances.min() / this.distance >= 0.15 && isConvex(this.latlngs)) {
 						this.description = "Quadrilatère";
 						this.multiplier = 1.2;
-					} else {
-						this.multiplier = 0.0;
 					}
-				} else {
-					this.multiplier = 0.0;
 				}
 			} else {
 				if (2 <= this.n && this.n <= 4) {
 					this.description = "Distance libre";
 					this.multiplier = 1.0;
-				} else {
-					this.multiplier = 0.0;
 				}
-			}
-			if (this.multiplier == 0.0) {
-				this.description = "Non valide";
 			}
 		} else if (this.league == "ukxcl-national") {
-			if (this.circuit) {
-				if (this.n == 2) {
-					this.description = "Out and return";
-					if (this.distance >= 25000.0 && declared) {
-						this.multiplier = 2.5;
-					} else if (this.distance > 25000.0) {
-						this.multiplier = 2.0;
-					} else {
-						this.multiplier = 1.5;
-					}
-				} else if (this.n == 3) {
-					if (this.distances.min() / this.distance >= 0.28) {
-						this.description = "FAI triangle";
-						if (this.distance >= 25000.0 && declared) {
+			if (declared) {
+				if (this.circuit) {
+					if (this.n == 2) {
+						if (this.distance >= 26600.0) {
+							this.description = "Declared out and return";
+							this.multiplier = 1.25;
+						}
+					} else if (this.n == 3) {
+						if (this.distances.min() / this.distance >= 0.28 && this.distance >= 27400.0) {
+							this.description = "Declared FAI triangle";
 							this.multiplier = 3.75;
-						} else if (this.distance >= 25000.0) {
-							this.multiplier = 2.7;
-						} else {
-							this.multiplier = 2.0;
+							this.glow = true;
 						}
-						this.glow = true;
-					} else {
-						this.description = "Flat triangle";
-						if (this.distance >= 20000.0) {
-							this.multiplier = 2.0;
-						} else {
-							this.multiplier = 1.5;
-						}
-					g
+					}
 				} else {
-					this.multiplier = 0.0;
+					if (this.distance >= 25800.0) {
+						this.description = "Flight to goal";
+						this.multiplier = 1.25;
+					}
 				}
 			} else {
-				if (this.n == 2) {
-					if (this.distance >= 10000.0) {
-						this.multiplier = declared ? 1.25 : 1.0;
-					} else {
-						this.multiplier = 0.0;
+				if (this.circuit) {
+					if (this.n == 2) {
+						if (this.distance >= 25000.0) {
+							this.description = "Out and return";
+							this.multiplier = 2.0;
+						} else if (this.distance >= 15000.0) {
+							this.description = "Out and return";
+							this.multiplier = 1.5;
+						}
+					} else if (this.n == 3) {
+						if (this.distances.min() / this.distance >= 0.28) {
+							if (this.distance >= 25000.0) {
+								this.description = "FAI triangle";
+								this.multiplier = 2.7;
+								this.glow = true;
+							} else if (this.distance >= 15000.0) {
+								this.description = "FAI triangle";
+								this.multiplier = 2.0;
+								this.glow = true;
+							}
+						} else {
+							if (this.distance >= 25000.0) {
+								this.description = "Flat triangle";
+								this.multiplier = 2.0;
+							} else if (this.distance >= 15000.0) {
+								this.description = "Flat triangle";
+								this.multiplier = 1.5;
+							}
+						}
 					}
-				} else if (3 <= this.n && this.n <= 5) {
-					this.description = "Turnpoint flight";
-					if (this.distance >= 15000.0) {
-						this.multiplier = declared ? 1.25 : 1.0;
-					} else {
-						this.multiplier = 0.0;
-					}
-					this.multiplier = this.distance >1.0;
 				} else {
-					this.multiplier = 0.0;
+					if (this.n == 2) {
+						if (this.distance >= 10000.0) {
+							this.description = "Open distance";
+							this.multiplier = 1.0;
+						}
+					} else if (3 <= this.n && this.n <= 5) {
+						if (this.distance >= 15000.0) {
+							this.description = "Turnpoint flight";
+							this.multiplier = 1.0;
+						}
+					}
 				}
-			}
-			if (this.multiplier == 0.0) {
-				this.description = "Invalid";
 			}
 		} else if (this.league == "xcontest") {
 			if (this.circuit) {
@@ -153,19 +194,12 @@ var Route = Class.create({
 						this.description = "Flat triangle";
 						this.multiplier = 1.2;
 					}
-				} else {
-					this.multiplier = 0.0;
 				}
 			} else {
 				if (2 <= this.n && this.n <= 5) {
 					this.description = "Free flight";
 					this.multiplier = 1.0;
-				} else {
-					this.multiplier = 0.0;
 				}
-			}
-			if (this.multiplier == 0.0) {
-				this.description = "Invalid";
 			}
 		}
 	},
@@ -192,8 +226,7 @@ var Route = Class.create({
 		this.latlngs.each(function(latlng, index) {
 			var a = new Element("a", {onclick: "map.setCenter(new GLatLng(" + latlng.lat() + ", " + latlng.lng() + "), 13)"});
 			a.appendChild(new Element("b").update("TP" + (index + 1).toString() + ":"));
-			var tr = [a,
-			          latlng.lat().toFixed(5), latlng.lng().toFixed(5)].toTR();
+			var tr = [a].concat(formatLatLng(latlng)).toTR();
 			table.appendChild(tr);	
 		});
 		return table;
@@ -266,7 +299,8 @@ function XCUpdateFlightType() {
 			map.removeOverlay(marker);
 		}
 	});
-	circuit = fields[2] == "true";
+	circuit = fields[2] == "circuit";
+	declared = fields[3] == "declared";
 }
 
 function XCUpdateRoute() {
