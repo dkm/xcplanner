@@ -49,27 +49,30 @@
 						<input value="Go!" type="submit" onclick="XCGoto();" />
 						<select id="flightType" onchange="XCUpdateFlightType(); XCUpdateRoute();">
 							<optgroup label="Coupe Fédérale de Distance">
-								<option value="cfd,2,false">Distance libre sans point de contournement</option>
-								<option value="cfd,3,false">Distance libre via un point de contournement</option>
-								<option value="cfd,4,false">Distance libre via deux points de contournement</option>
-								<option value="cfd,2,true">Aller-retour</option>
-								<option selected="true" value="cfd,3,true">Triangle plat ou FAI</option>
-								<option value="cfd,4,true">Quadrilatère</option>
+								<option value="cfd,2,,">Distance libre sans point de contournement</option>
+								<option value="cfd,3,,">Distance libre via un point de contournement</option>
+								<option value="cfd,4,,">Distance libre via deux points de contournement</option>
+								<option value="cfd,2,circuit,">Aller-retour</option>
+								<option selected="true" value="cfd,3,circuit,">Triangle plat ou FAI</option>
+								<option value="cfd,4,circuit,">Quadrilatère</option>
 							</optgroup>
 							<optgroup label="UK National XC League">
-								<option value="ukxcl-national,2,false">Open distance</option>
-								<option value="ukxcl-national,3,false">Turnpoint flight via one turnpoint</option>
-								<option value="ukxcl-national,4,false">Turnpoint flight via two turnpoints</option>
-								<option value="ukxcl-national,5,false">Turnpoint flight via three turnpoints</option>
-								<option value="ukxcl-national,3,true">Out and return</option>
-								<option value="ukxcl-national,3,true">Flat or FAI triangle</option>
+								<option value="ukxcl-national,2,,">Open distance</option>
+								<option value="ukxcl-national,3,,">Turnpoint flight via one turnpoint</option>
+								<option value="ukxcl-national,4,,">Turnpoint flight via two turnpoints</option>
+								<option value="ukxcl-national,5,,">Turnpoint flight via three turnpoints</option>
+								<option value="ukxcl-national,2,circuit,">Out and return</option>
+								<option value="ukxcl-national,3,circuit,">Flat or FAI triangle</option>
+								<option value="ukxcl-national,2,,declared">Flight to goal</option>
+								<option value="ukxcl-national,2,circuit,declared">Declared out and return</option>
+								<option value="ukxcl-national,3,circuit,declared">Declared FAI triangle</option>
 							</optgroup>
 							<optgroup label="XContest">
-								<option value="xcontest,2,false">Free flight</option>
-								<option value="xcontest,3,false">Free flight via a turnpoint</option>
-								<option value="xcontest,4,false">Free flight via two turnpoints</option>
-								<option value="xcontest,5,false">Free flight via three turnpoints</option>
-								<option value="xcontest,3,true">Flat or FAI triangle </option>
+								<option value="xcontest,2,,">Free flight</option>
+								<option value="xcontest,3,,">Free flight via a turnpoint</option>
+								<option value="xcontest,4,,">Free flight via two turnpoints</option>
+								<option value="xcontest,5,,">Free flight via three turnpoints</option>
+								<option value="xcontest,3,circuit,">Flat or FAI triangle </option>
 							</optgroup>
 						</select>
 						<input value="Put turnpoints here" type="submit" onclick="XCResetTurnpoints(); XCUpdateRoute();" />
