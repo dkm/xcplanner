@@ -19,6 +19,20 @@ Object.extend(Array.prototype, {
 	}
 });
 
+function XCReverseRoute() {
+	var reversed_markers = markers.map(function(marker, i) {
+			return markers[i < n ? n - 1 - i : i];
+		});
+	markers = reversed_markers;
+}
+
+function XCRotateRoute(direction) {
+	var rotated_markers = markers.map(function(marker, i) {
+			return markers[i < n ? (i + direction + n) % n : i];
+		});
+	markers = rotated_markers;
+}
+
 function formatLatLng(latlng) {
 	var coordFormat = $F("coordFormat");
 	if (coordFormat == "utm") {
