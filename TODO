@@ -5,7 +5,6 @@ Minimum distances for XContest
 Minimum distances for CFD
 Space between degrees and degree sign
 Leading zeros on coordinates
-Add direction arrows
 Refactor league specific code
 Use league specific code to update optgroups
 Automatically generate declarations

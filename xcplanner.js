@@ -4,7 +4,7 @@ var declared = false;
 var geocoder = null;
 var map = null;
 var markers = null;
-var polyline = null;
+var polylines = [];
 var league = null;
 var n = null;
 var circuit = null;
@@ -18,6 +18,18 @@ Object.extend(Array.prototype, {
 		return tr;
 	}
 });
+
+function initialBearingTo(latlng1, latlng2) {
+	var y = Math.sin(latlng1.lngRadians() - latlng2.lngRadians()) * Math.cos(latlng2.latRadians());
+	var x = Math.cos(latlng1.latRadians()) * Math.sin(latlng2.latRadians()) - Math.sin(latlng1.latRadians()) * Math.cos(latlng2.latRadians()) * Math.cos(latlng1.lngRadians() - latlng2.lngRadians());
+	return -Math.atan2(y, x);
+}
+
+function latLngAt(latlng, bearing, distance) {
+	var lat = Math.asin(Math.sin(latlng.latRadians()) * Math.cos(distance) + Math.cos(latlng.latRadians()) * Math.sin(distance) * Math.cos(bearing));
+	var lng = latlng.lngRadians() + Math.atan2(Math.sin(bearing) * Math.sin(distance) * Math.cos(latlng.latRadians()), Math.cos(distance) - Math.sin(latlng.latRadians()) * Math.sin(lat));
+	return new GLatLng(180.0 * lat / Math.PI, 180.0 * lng / Math.PI);
+}
 
 function XCReverseRoute() {
 	var latlngs = markers.map(function(marker) { return marker.getLatLng(); });
@@ -249,7 +261,7 @@ var Route = Class.create({
 		});
 		return table;
 	},
-	toPolyline: function() {
+	toPolylines: function() {
 		if (this.circuit) {
 			var latlngs = this.latlngs.clone();
 			latlngs.push(latlngs[0]);
@@ -263,7 +275,15 @@ var Route = Class.create({
 		} else {
 			var color = "#00ff00";
 		}
-		return new GPolyline(latlngs, color, 4, 0.75);
+		var result = [new GPolyline(latlngs, color, 3, 1.0)];
+		var distance = 1000.0 / R;
+		var d = 2000 * 1024 / (R * Math.pow(2, map.getZoom()));
+		$R(0, latlngs.length - 2).each(function(i) {
+			var bearing = initialBearingTo(latlngs[i + 1], latlngs[i]);
+			var head = [latlngs[i + 1], latLngAt(latlngs[i + 1], bearing - Math.PI / 8.0, d), latLngAt(latlngs[i + 1], bearing, 0.5 * d), latLngAt(latlngs[i + 1], bearing + Math.PI / 8.0, d), latlngs[i + 1]];
+			result.push(new GPolygon(head, color, 1, 1.0, color, 1.0));
+		});
+		return result;
 	}
 });
 
@@ -290,6 +310,7 @@ function XCSetCenter(latlng) {
 		map.setCenter(latlng || new GLatLng(0, 0), zoom);
 		map.setUIToDefault();
 		map.setMapType(G_PHYSICAL_MAP);
+		GEvent.addListener(map, "zoomend", XCUpdateRoute);
 	} else if (latlng) {
 		map.setCenter(latlng, zoom);
 	}
@@ -330,11 +351,9 @@ function XCUpdateRoute() {
 	$("score").update((route.multiplier * route.distance / 1000).toFixed(2) + " points");
 	$("route").update(route.toHTML());
 	$("turnpoints").update(route.turnpointsToHTML());
-	if (polyline) {
-		map.removeOverlay(polyline);
-	}
-	polyline = route.toPolyline();
-	map.addOverlay(polyline);
+	polylines.each(function(polyline) { map.removeOverlay(polyline); });
+	polylines = route.toPolylines();
+	polylines.each(function(polyline) { map.addOverlay(polyline); });
 }
 
 function XCLoad() {
@@ -348,6 +367,6 @@ function XCUnload() {
 	geocoder = null;
 	map = null;
 	markers = null;
-	polyline = null;
+	polylines = [];
 	GUnload();
 }
