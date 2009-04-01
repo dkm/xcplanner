@@ -6,11 +6,10 @@ Minimum distances for CFD
 Space between degrees and degree sign
 Leading zeros on coordinates
 Add direction arrows
-Add reverse route button for loops
-Add rotate turnpoints button
 Refactor league specific code
 Use league specific code to update optgroups
 Automatically generate declarations
 Add download waypoints button
 Add reason for invalid
 Add XContest airspace
+Make reverse and rotate conditional on route type

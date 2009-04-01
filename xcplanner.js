@@ -20,17 +20,21 @@ Object.extend(Array.prototype, {
 });
 
 function XCReverseRoute() {
-	var reversed_markers = markers.map(function(marker, i) {
-			return markers[i < n ? n - 1 - i : i];
-		});
-	markers = reversed_markers;
+	var latlngs = markers.map(function(marker) { return marker.getLatLng(); });
+	markers.each(function(marker, i) {
+		if (i < n) {
+			marker.setLatLng(latlngs[n - 1 - i]);
+		}
+	});
 }
 
 function XCRotateRoute(direction) {
-	var rotated_markers = markers.map(function(marker, i) {
-			return markers[i < n ? (i + direction + n) % n : i];
-		});
-	markers = rotated_markers;
+	var latlngs = markers.map(function(marker) { return marker.getLatLng(); });
+	markers.each(function(marker, i) {
+		if (i < n) {
+			marker.setLatLng(latlngs[(i + direction + n) % n]);
+		}
+	});
 }
 
 function formatLatLng(latlng) {
