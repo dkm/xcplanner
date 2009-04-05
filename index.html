@@ -60,12 +60,19 @@
 						<input id="location" type="text" value="Doussard, France" />
 						<input value="Go!" type="submit" onclick="XCGoto();" />
 						<select id="flightType" onchange="XCUpdateFlightType(); XCUpdateRoute();">
+							<optgroup label="Leonardo">
+								<option value="leonardo,2,,">Open distance</option>
+								<option value="leonardo,3,,">Open distance via one turnpoint</option>
+								<option value="leonardo,4,,">Open distance via two turnpoints</option>
+								<option value="leonardo,5,,">Open distance via three turnpoints</option>
+								<option selected="true" value="leonardo,3,circuit,">Flat or FAI triangle</option>
+							</optgroup>
 							<optgroup label="Coupe Fédérale de Distance">
 								<option value="cfd,2,,">Distance libre sans point de contournement</option>
 								<option value="cfd,3,,">Distance libre via un point de contournement</option>
 								<option value="cfd,4,,">Distance libre via deux points de contournement</option>
 								<option value="cfd,2,circuit,">Aller-retour</option>
-								<option selected="true" value="cfd,3,circuit,">Triangle plat ou FAI</option>
+								<option value="cfd,3,circuit,">Triangle plat ou FAI</option>
 								<option value="cfd,4,circuit,">Quadrilatère</option>
 							</optgroup>
 							<optgroup label="UK National XC League">

@@ -147,6 +147,24 @@ var Route = Class.create({
 					this.multiplier = 1.0;
 				}
 			}
+		} else if (this.league == "leonardo") {
+			if (this.circuit) {
+				if (this.n == 3) {
+					if (this.distances.min() / this.distance >= 0.28) {
+						this.description = "FAI triangle";
+						this.multiplier = 2.0;
+						this.glow = true;
+					} else {
+						this.description = "Flat triangle";
+						this.multiplier = 1.75;
+					}
+				}
+			} else {
+				if (2 <= this.n && this.n <= 5) {
+					this.description = "Open distance";
+					this.multiplier = 1.5;
+				}
+			}
 		} else if (this.league == "ukxcl-national") {
 			if (declared) {
 				if (this.circuit) {
