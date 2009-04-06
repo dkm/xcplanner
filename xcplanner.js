@@ -171,7 +171,7 @@ var Route = Class.create({
 					if (this.n == 2) {
 						if (this.distance >= 26600.0) {
 							this.description = "Declared out and return";
-							this.multiplier = 1.25;
+							this.multiplier = 2.5;
 						}
 					} else if (this.n == 3) {
 						if (this.distances.min() / this.distance >= 0.28 && this.distance >= 27400.0) {
