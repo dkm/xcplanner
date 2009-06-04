@@ -8,6 +8,7 @@ var polylines = [];
 var league = null;
 var n = null;
 var circuit = null;
+var sectors = [];
 
 Object.extend(Array.prototype, {
 	toTR: function() {
@@ -29,6 +30,11 @@ function latLngAt(latlng, bearing, distance) {
 	var lat = Math.asin(Math.sin(latlng.latRadians()) * Math.cos(distance) + Math.cos(latlng.latRadians()) * Math.sin(distance) * Math.cos(bearing));
 	var lng = latlng.lngRadians() + Math.atan2(Math.sin(bearing) * Math.sin(distance) * Math.cos(latlng.latRadians()), Math.cos(distance) - Math.sin(latlng.latRadians()) * Math.sin(lat));
 	return new GLatLng(180.0 * lat / Math.PI, 180.0 * lng / Math.PI);
+}
+
+function latLngAtXY(latlng, x, y)
+{
+	return latLngAt(latlng, Math.atan2(x, y), Math.sqrt(x*x + y*y) / R);
 }
 
 function XCReverseRoute() {
@@ -323,6 +329,8 @@ function XCResetTurnpoints() {
 }
 
 function XCSetCenter(latlng) {
+	var color;
+
 	if (map == null) {
 		map = new GMap2($("map"));
 		map.setCenter(latlng || new GLatLng(0, 0), zoom);
@@ -333,10 +341,11 @@ function XCSetCenter(latlng) {
 		map.setCenter(latlng, zoom);
 	}
 	if (markers == null) {
-		markers = $R(0, 4).map(function(i) {
+		markers = $R(0, 4).map(function(i){
 			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
 			marker = new GMarker(latlng || new GLatLng(0, 0), {draggable: true, icon: icon});
 			GEvent.addListener(marker, "drag", XCUpdateRoute);
+
 			return marker;
 		});
 		XCResetTurnpoints();
@@ -347,17 +356,56 @@ function XCSetCenter(latlng) {
 
 function XCUpdateFlightType() {
 	var fields = $F("flightType").split(/,/);
+	var color;
+
 	league = fields[0];
 	n = new Number(fields[1]);
+	circuit = (fields[2] == "circuit");
+	declared = (fields[3] == "declared");
+
+	markers.each(function(marker, index)
+	{
+		map.removeOverlay(marker);
+	});
+
+	markers = $R(0, 4).map(function(i)
+	{
+		if((n == 3) && circuit) // triangle
+		{
+			switch(i)
+			{
+				case 0:
+					color = "#ff0000";
+				break;
+				case 1:
+					color = "#00ff00";
+				break;
+				case 2:
+					color = "#0000ff";
+				break;
+				default:
+					color = "#00ff00";
+				break;
+			}
+		}
+		else
+		{
+			color = "#00ff00";
+		}
+
+		// recreate markers because of color change
+		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: color});
+		var marker = new GMarker(markers[i].getLatLng(), {draggable: true, icon: icon});
+		GEvent.addListener(marker, "drag", XCUpdateRoute);
+
+		return marker;
+	});
+
 	markers.each(function(marker, index) {
 		if (index < n) {
 			map.addOverlay(marker);
-		} else {
-			map.removeOverlay(marker);
 		}
 	});
-	circuit = fields[2] == "circuit";
-	declared = fields[3] == "declared";
 }
 
 function XCUpdateRoute() {
@@ -372,6 +420,158 @@ function XCUpdateRoute() {
 	polylines.each(function(polyline) { map.removeOverlay(polyline); });
 	polylines = route.toPolylines();
 	polylines.each(function(polyline) { map.addOverlay(polyline); });
+
+	if(sectors.length == 3)
+	{
+		map.removeOverlay(sectors[0]);
+		map.removeOverlay(sectors[1]);
+		map.removeOverlay(sectors[2]);
+	}
+
+	if((n == 3) && circuit)
+	{
+		sectors[0] = new GPolygon(getFaiSector(latlngs[0], latlngs[1], latlngs[2]),
+					"#f33f00", 1, 1, "#0000ff", 0.1);
+		map.addOverlay(sectors[0]);
+	
+		sectors[1] = new GPolygon(getFaiSector(latlngs[1], latlngs[2], latlngs[0]),
+					"#f33f00", 1, 1, "#ff0000", 0.1);
+		map.addOverlay(sectors[1]);
+	
+		sectors[2] = new GPolygon(getFaiSector(latlngs[2], latlngs[0], latlngs[1]),
+					"#f33f00", 1, 1, "#00ff00", 0.1);
+		map.addOverlay(sectors[2]);
+	}
+}
+
+/**
+	Get the points of the FAI sector of the triangle latlng1 (A), latlng2 (B), latlng3 (C),
+	a, b are the cathetus and c is the hypotenuse.
+	The problem is broken down for a common side of the FAI triangle. The side (latlng1 - latlng2)
+	is named c. The possible sector is given through a and b.
+	@param latlng1 GLatLng of first edge (A)
+	@param latlng2 GLatLng of second edge (B)
+	@param latlng3 GLatLng of third edge (C) (only for orientation detection)
+	@return Array of GLatLng. The points of the sector.
+*/
+function getFaiSector(latlng1, latlng2, latlng3)
+{
+	var bear;
+	var latlngs = [];
+	var cw;
+	var ap;
+	var bp;
+	var cp;
+	var a;
+	var b;
+	var c = latlng1.distanceFrom(latlng2);
+	var x;
+	var y;
+	var rotX;
+	var rotY;
+
+	// the orientation of the triangle
+	cw = (orient2dTri(latlng1, latlng2, latlng3) < 0);
+
+	if(cw)
+	{
+		bear = (initialBearingTo(latlng1, latlng2) - Math.PI / 2);
+	}
+	else
+	{
+		bear = -(initialBearingTo(latlng1, latlng2) - Math.PI / 2);
+	}
+
+	/* calculate the sectors */
+
+	// case 1: c is minimal, a and b variable
+	cp = 28.0;
+
+	for(ap=28; ap<44; ap++)
+	{
+		bp = 100.0 - ap - cp;
+		a = c * ap / cp;
+		b = c * bp / cp;
+		x = (b*b + c*c - a*a) / (2 * c);
+		y = Math.sqrt(b*b - x*x);
+
+		// rotation
+		rotX = x * Math.cos(bear) - y * Math.sin(bear);
+		rotY = x * Math.sin(bear) + y * Math.cos(bear);
+
+		if(cw)
+		{
+			rotY = -rotY;
+		}
+
+		// translation
+		latlngs.push(latLngAtXY(latlng1, rotX, rotY));
+	}
+
+	// case 2: b is minimal, a and c variable
+	bp = 28.0;
+
+	for(cp=28; cp<44; cp++)
+	{
+		ap = 100.0 - bp - cp;
+		a = c * ap / cp;
+		b = c * bp / cp;
+		x = (b*b + c*c - a*a) / (2 * c);
+		y = Math.sqrt(b*b - x*x);
+
+		// rotation
+		rotX = x * Math.cos(bear) - y * Math.sin(bear);
+		rotY = x * Math.sin(bear) + y * Math.cos(bear);
+
+		if(cw)
+		{
+			rotY = -rotY;
+		}
+
+		// translation
+		latlngs.push(latLngAtXY(latlng1, rotX, rotY));
+	}
+
+	// case 3: a ist minimal, b and c variable
+	ap = 28.0;
+
+	for(cp=44; cp>=28; cp--)
+	{
+		bp = 100.0 - ap - cp;
+		a = c * ap / cp;
+		b = c * bp / cp;
+		x = (b*b + c*c - a*a) / (2 * c);
+		y = Math.sqrt(b*b - x*x);
+
+		// rotation
+		rotX = x * Math.cos(bear) - y * Math.sin(bear);
+		rotY = x * Math.sin(bear) + y * Math.cos(bear);
+
+		if(cw)
+		{
+			rotY = -rotY;
+		}
+
+		// translation
+		latlngs.push(latLngAtXY(latlng1, rotX, rotY));
+	}
+
+	return latlngs;
+}
+
+/**
+	Test the orientation of a triangle.
+	@param latlng1 GLatLng of first edge
+	@param latlng2 GLatLng of second edge
+	@param latlng3 GLatLng of third edge
+	@return >0 for counterclockwise
+					=0 for none (degenerate)
+					<0 for clockwise
+*/
+function orient2dTri(latlng1, latlng2, latlng3)
+{
+	return ((latlng2.lng() - latlng1.lng()) * (latlng3.lat() - latlng1.lat()) -
+				(latlng3.lng() - latlng1.lng()) * (latlng2.lat() - latlng1.lat()));
 }
 
 function XCLoad() {
