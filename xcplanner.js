@@ -83,7 +83,7 @@ function formatLatLng(latlng) {
 		result = result.concat(formatter(Math.abs(latlng.lat())));
 		result.push(latlng.lat() < 0.0 ? "S" : "N");
 		result = result.concat(formatter(Math.abs(latlng.lng())));
-		result.push(latlng.lng() < 0.0 ? "E" : "W");
+		result.push(latlng.lng() < 0.0 ? "W" : "E");
 		return result;
 	}
 }
