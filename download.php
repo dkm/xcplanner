@@ -29,12 +29,12 @@ class Route {
 
 }
 
-$name = preg_replace("/[^\\s\\w]+/", "", $_GET["name"]);
+$name = preg_replace("/[^\\s\\w\\-]+/", "", $_GET["name"]);
 $turnpoints = array();
 if ($_GET["turnpoints"]) {
 	foreach (split(",", $_GET["turnpoints"]) as $turnpoint) {
 		list($turnpoint_name, $lat, $lon, $ele) = split(":", $turnpoint);
-		$turnpoint_name = preg_replace("/[^\\s\\w]+/", "", $turnpoint_name); 
+		$turnpoint_name = preg_replace("/[^\\s\\w\\-]+/", "", $turnpoint_name); 
 		$lat = (float) $lat;
 		$lon = (float) $lon;
 		$ele = (int) $ele;
