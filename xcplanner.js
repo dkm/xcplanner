@@ -435,9 +435,9 @@ function XCUpdateRoute() {
 	$("turnpoints").update(route.turnpointsToHTML());
 	var pairs = [];
 	pairs.push("format=gpx");
-	pairs.push("turnpoints=" + markers.map(function(marker) {
+	pairs.push("turnpoints=" + markers.map(function(marker, i) {
 		var latLng = marker.getLatLng();
-		return [marker.name, latLng.lat(), latLng.lng(), "0"].join(":");
+		return ["TP" + (i + 1), latLng.lat(), latLng.lng(), "0"].join(":");
 	}).join(","));
 	if (route.circuit) {
 		pairs.push("circuit=true");
