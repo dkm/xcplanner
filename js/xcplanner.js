@@ -435,6 +435,7 @@ function XCUpdateRoute() {
 	$("turnpoints").update(route.turnpointsToHTML());
 	var pairs = [];
 	pairs.push("format=gpx");
+	pairs.push("name=" + ($F("location") + "-" + (route.distance / 1000).toFixed(0) + "km-" + route.description).replace(/[^0-9A-Za-z\-]+/g, "-"));
 	pairs.push("turnpoints=" + markers.map(function(marker, i) {
 		var latLng = marker.getLatLng();
 		return ["TP" + (i + 1), latLng.lat(), latLng.lng(), "0"].join(":");
