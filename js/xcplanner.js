@@ -443,7 +443,7 @@ function XCUpdateRoute() {
 	if (route.circuit) {
 		pairs.push("circuit=true");
 	}
-	$("download").writeAttribute({href: "download.php?" + pairs.join("&")});
+	$("gpx").writeAttribute({href: "download.php?" + pairs.join("&")});
 	polylines.each(function(polyline) { map.removeOverlay(polyline); });
 	polylines = route.toPolylines();
 	polylines.each(function(polyline) { map.addOverlay(polyline); });

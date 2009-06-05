@@ -26,7 +26,7 @@
 						<span id="route"></span>
 					</p>
 					<p>
-						<b>Turnpoints:</b><br/>
+						<b>Turnpoints:</b> <a href="#" id="gpx">&darr;gpx</a><br/>
 						<span id="turnpoints"></span><br>
 						<select id="coordFormat" onchange="XCUpdateRoute();">
 							<option value="utm" selected=on">UTM</option>
@@ -35,7 +35,6 @@
 							<option value="dms">dd&deg; mm&prime; ss&Prime;</option>
 							<option value="os">OS grid</option>
 						</select>
-						<a href="#" id="download">download</a>
 					</p>
 
 					<!-- <p>
