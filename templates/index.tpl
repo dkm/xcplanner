@@ -4,10 +4,10 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<title>XC Planner</title>
 		<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key={$GOOGLE_MAPS_API_KEY}" type="text/javascript"></script>
-		<script src="jscoord-1.1.1.js" type="text/javascript"></script>
-		<script src="mapiconmaker.js" type="text/javascript"></script>
+		<script src="js/jscoord-1.1.1.js" type="text/javascript"></script>
+		<script src="js/mapiconmaker.js" type="text/javascript"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.0.3/prototype.js" type="text/javascript"></script>
-		<script src="xcplanner.js" type="text/javascript"></script>
+		<script src="js/xcplanner.js" type="text/javascript"></script>
 	</head>
 	<body onload="XCLoad()" onunload="XCUnload()">
 		<table>
