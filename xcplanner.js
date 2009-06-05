@@ -433,6 +433,16 @@ function XCUpdateRoute() {
 	$("score").update((route.multiplier * route.distance / 1000).toFixed(2) + " points");
 	$("route").update(route.toHTML());
 	$("turnpoints").update(route.turnpointsToHTML());
+	var pairs = [];
+	pairs.push("format=gpx");
+	pairs.push("turnpoints=" + markers.map(function(marker) {
+		var latLng = marker.getLatLng();
+		return [marker.name, latLng.lat(), latLng.lng(), "0"].join(":");
+	}).join(","));
+	if (route.circuit) {
+		pairs.push("circuit=true");
+	}
+	$("download").writeAttribute({href: "download.php?" + pairs.join("&")});
 	polylines.each(function(polyline) { map.removeOverlay(polyline); });
 	polylines = route.toPolylines();
 	polylines.each(function(polyline) { map.addOverlay(polyline); });
