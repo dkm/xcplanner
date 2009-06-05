@@ -50,7 +50,7 @@ $route = new Route($name, $turnpoints, $circuit);
 $smarty = new Smarty;
 $smarty->assign("route", $route);
 if ($_GET["format"] == "gpx") {
-	header("Content-Type: text/xml");
+	header("Content-Type: application/octet-stream");
 	header("Content-Disposition: inline; filename=\"$route->name.gpx\"");
 	$smarty->display("download_gpx.tpl");
 }
