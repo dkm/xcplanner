@@ -25,6 +25,7 @@ var league = null;
 var n = null;
 var circuit = null;
 var sectors = [];
+var turnpts = []
 
 Object.extend(Array.prototype, {
 	toTR: function() {
@@ -328,7 +329,11 @@ var Route = Class.create({
 });
 
 function XCGoto() {
-	if (geocoder) {
+	var init;
+
+	if (geocoder)
+	{
+		init = (markers == null);
 		geocoder.getLatLng($F("location"), XCSetCenter);
 	}
 }
@@ -345,8 +350,6 @@ function XCResetTurnpoints() {
 }
 
 function XCSetCenter(latlng) {
-	var color;
-
 	if (map == null) {
 		map = new GMap2($("map"));
 		map.setCenter(latlng || new GLatLng(0, 0), zoom);
@@ -356,15 +359,29 @@ function XCSetCenter(latlng) {
 	} else if (latlng) {
 		map.setCenter(latlng, zoom);
 	}
+
 	if (markers == null) {
 		markers = $R(0, 4).map(function(i){
 			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
-			marker = new GMarker(latlng || new GLatLng(0, 0), {draggable: true, icon: icon});
+			marker = new GMarker(new GLatLng(0, 0), {draggable: true, icon: icon});
 			GEvent.addListener(marker, "drag", XCUpdateRoute);
 
 			return marker;
 		});
-		XCResetTurnpoints();
+
+		if((turnpts.length > 0) && (turnpts.length <= markers.length))
+		{
+				// Koordinaten setzen
+			for(var tpNr=0; tpNr<turnpts.length; tpNr++)
+			{
+				markers[tpNr].setLatLng(new GLatLng(turnpts[tpNr][0], turnpts[tpNr][1]));
+			}
+		}
+		else
+		{
+				XCResetTurnpoints();
+		}
+
 		XCUpdateFlightType();
 		XCUpdateRoute();
 	}
@@ -436,8 +453,8 @@ function XCUpdateRoute() {
 	var pairs = [];
 	pairs.push("format=gpx");
 	pairs.push("name=" + ($F("location") + "-" + (route.distance / 1000).toFixed(0) + "km-" + route.description).replace(/[^0-9A-Za-z\-]+/g, "-"));
-	pairs.push("turnpoints=" + $R(0, n - 1).map(function(i) {
-		var latLng = markers[i].getLatLng();
+	pairs.push("turnpoints=" + markers.map(function(marker, i) {
+		var latLng = marker.getLatLng();
 		return ["TP" + (i + 1), latLng.lat(), latLng.lng(), "0"].join(":");
 	}).join(","));
 	if (route.circuit) {
@@ -601,7 +618,9 @@ function orient2dTri(latlng1, latlng2, latlng3)
 				(latlng3.lng() - latlng1.lng()) * (latlng2.lat() - latlng1.lat()));
 }
 
-function XCLoad() {
+function XCLoad(turnpoints) {
+	turnpts = turnpoints;
+
 	if (GBrowserIsCompatible()) {
 		geocoder = new GClientGeocoder();
 		XCGoto();
@@ -614,4 +633,51 @@ function XCUnload() {
 	markers = null;
 	polylines = [];
 	GUnload();
+}
+
+function XCBookmark()
+{
+	var title;
+	var pairs = [];
+	var url;
+	var pos;
+
+	title = ($("location").value + " " + $("distance").innerHTML + " " + $("description").innerHTML);
+
+	pairs.push("location=" + $("location").value);
+	pairs.push("flightType=" + $F("flightType"));
+	pairs.push("coordFormat=" + $F("coordFormat"));
+	pairs.push("turnpoints=" + $R(0, n - 1).map(function(i)
+			{
+				var latLng = markers[i].getLatLng();
+				return ["TP" + (i + 1), latLng.lat(), latLng.lng()].join(":");
+			}).join(","));
+
+	pos = document.URL.lastIndexOf('?');
+
+	if(pos > 0)
+	{
+		url = document.URL.substring(0, pos) + "?" + pairs.join("&");
+	}
+	else
+	{
+		url = document.URL + "?" + pairs.join("&");
+	}
+
+	if(window.sidebar) // firefox
+	{
+		window.external.addPanel(title, url, "");
+	}
+	else if(window.opera && window.print)// opera
+	{
+		var elem = document.createElement('a');
+		elem.setAttribute('href', url);
+		elem.setAttribute('title', title);
+		elem.setAttribute('rel', 'sidebar');
+		elem.click();
+	}
+	else if(document.all) // ie
+	{
+		window.external.AddFavorite(url, title);
+	}
 }
