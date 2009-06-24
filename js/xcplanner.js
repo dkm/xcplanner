@@ -465,27 +465,28 @@ function XCUpdateRoute() {
 	polylines = route.toPolylines();
 	polylines.each(function(polyline) { map.addOverlay(polyline); });
 
-	if(sectors.length == 3)
-	{
-		map.removeOverlay(sectors[0]);
-		map.removeOverlay(sectors[1]);
-		map.removeOverlay(sectors[2]);
-	}
-
+	s = [];
 	if((n == 3) && circuit)
 	{
-		sectors[0] = new GPolygon(getFaiSector(latlngs[0], latlngs[1], latlngs[2]),
+		s[0] = new GPolygon(getFaiSector(latlngs[0], latlngs[1], latlngs[2]),
 					"#f33f00", 1, 1, "#0000ff", 0.1);
-		map.addOverlay(sectors[0]);
-	
-		sectors[1] = new GPolygon(getFaiSector(latlngs[1], latlngs[2], latlngs[0]),
+		s[1] = new GPolygon(getFaiSector(latlngs[1], latlngs[2], latlngs[0]),
 					"#f33f00", 1, 1, "#ff0000", 0.1);
-		map.addOverlay(sectors[1]);
-	
-		sectors[2] = new GPolygon(getFaiSector(latlngs[2], latlngs[0], latlngs[1]),
+		s[2] = new GPolygon(getFaiSector(latlngs[2], latlngs[0], latlngs[1]),
 					"#f33f00", 1, 1, "#00ff00", 0.1);
-		map.addOverlay(sectors[2]);
 	}
+	for (var i = 0; i < 3; ++i)
+	{
+		if (i < s.length)
+		{
+			map.addOverlay(s[i]);
+		}
+		if (i < sectors.length)
+		{
+			map.removeOverlay(sectors[i]);
+		}
+	}
+	sectors = s;
 }
 
 /**
