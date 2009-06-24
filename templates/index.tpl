@@ -3,6 +3,7 @@
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<title>XC Planner</title>
+		<link rel="stylesheet" href="css/xcplanner.css" type="text/css"/>
 		<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key={$GOOGLE_MAPS_API_KEY}" type="text/javascript"></script>
 		<script src="js/jscoord-1.1.1.js" type="text/javascript"></script>
 		<script src="js/mapiconmaker.js" type="text/javascript"></script>
@@ -20,15 +21,15 @@
 					</p>
 					<p>
 						<b>Route:</b>
-						<span onclick="XCRotateRoute(1); XCUpdateRoute();">&#8631;</span>
-						<span onclick="XCReverseRoute(); XCUpdateRoute();">&#8644;</span>
-						<span onclick="XCRotateRoute(-1); XCUpdateRoute();">&#8630;</span><br/>
+						<a href="javascript:XCRotateRoute(1); XCUpdateRoute();" title="Rotate turnpoints clockwise">&#8631;</a>
+						<a href="javascript:XCReverseRoute(); XCUpdateRoute();" title="Reverse turnpoints">&#8644;</a>
+						<a href="javascript:XCRotateRoute(-1); XCUpdateRoute();" title="Rotate turnpoints anti-clockwise">&#8630;</a>
+						<a name="bm" href="javascript:XCBookmark()" title="Bookmark route">&#10025;</a>
+						<a href="#" id="gpx" title="Download GPX file of waypoints and route">gpx</a><br/>
 						<span id="route"></span>
 					</p>
 					<p>
 						<b>Turnpoints:</b>
-						<a href="#" id="gpx">&darr;gpx</a><br/>
-						<a name="bm" href="javascript:XCBookmark()">&darr;bookmark</a>
 						<span id="turnpoints"></span><br>
 						{
 							html_options name=coordFormat id="coordFormat"
