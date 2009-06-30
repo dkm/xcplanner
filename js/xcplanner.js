@@ -461,6 +461,9 @@ function XCUpdateRoute() {
 		pairs.push("circuit=true");
 	}
 	$("gpx").writeAttribute({href: "download.php?" + pairs.join("&")});
+
+	$("link").writeAttribute({href: XCGetUrl()});
+
 	polylines.each(function(polyline) { map.removeOverlay(polyline); });
 	polylines = route.toPolylines();
 	polylines.each(function(polyline) { map.addOverlay(polyline); });
@@ -636,14 +639,10 @@ function XCUnload() {
 	GUnload();
 }
 
-function XCBookmark()
-{
-	var title;
+function XCGetUrl(){
 	var pairs = [];
 	var url;
 	var pos;
-
-	title = ($("location").value + " " + $("distance").innerHTML + " " + $("description").innerHTML);
 
 	pairs.push("location=" + $("location").value);
 	pairs.push("flightType=" + $F("flightType"));
@@ -664,6 +663,18 @@ function XCBookmark()
 	{
 		url = document.URL + "?" + pairs.join("&");
 	}
+	return url;
+}
+
+function XCBookmark()
+{
+	var title;
+	var url;
+
+
+	title = ($("location").value + " " + $("distance").innerHTML + " " + $("description").innerHTML);
+
+	url = XCGetUrl();
 
 	if(window.sidebar) // firefox
 	{

@@ -26,6 +26,7 @@
 						<a href="javascript:XCRotateRoute(-1); XCUpdateRoute();" title="Rotate turnpoints anti-clockwise">&#8630;</a>
 						<a name="bm" href="javascript:XCBookmark()" title="Bookmark route">&#10025;</a>
 						<a href="#" id="gpx" title="Download GPX file of waypoints and route">gpx</a><br/>
+						<a href="#" id="link" title="Link for sharing this route">link</a><br/>
 						<span id="route"></span>
 					</p>
 					<p>
