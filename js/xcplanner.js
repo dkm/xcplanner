@@ -621,7 +621,7 @@ function orient2dTri(latlng1, latlng2, latlng3)
 
 function XCLoad(turnpoints) {
 	turnpts = turnpoints;
-
+	XCResize();
 	if (GBrowserIsCompatible()) {
 		geocoder = new GClientGeocoder();
 		XCGoto();
@@ -681,4 +681,23 @@ function XCBookmark()
 	{
 		window.external.AddFavorite(url, title);
 	}
+}
+
+function XCResize()
+{
+	var viewWidth;
+	var viewHeight;
+
+	if (typeof window.innerWidth != "undefined") {
+		viewWidth = window.innerWidth;
+		viewHeight = window.innerHeight;
+	} else if (typeof document.documentElement != "undefined" && typeof document.documentElement.clientWidth != "undefined" && document.documentElement.clientWidth != 0) {
+		viewWidth = document.documentElement.clientWidth;
+		viewHeight = document.documentElement.clientHeight;
+	} else {
+		viewWidth = document.getElementsByTagName("body")[0].clientWidth;
+		viewHeight = document.getElementsByTagName("body")[0].clientHeight;
+	}
+	$("map").style.width = (viewWidth - 305) + "px";
+	$("map").style.height = (viewHeight - 25) + "px";
 }
