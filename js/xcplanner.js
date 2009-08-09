@@ -450,17 +450,28 @@ function XCUpdateRoute() {
 	$("score").update((route.multiplier * route.distance / 1000).toFixed(2) + " points");
 	$("route").update(route.toHTML());
 	$("turnpoints").update(route.turnpointsToHTML());
-	var pairs = [];
-	pairs.push("format=gpx");
-	pairs.push("name=" + ($F("location") + "-" + (route.distance / 1000).toFixed(0) + "km-" + route.description).replace(/[^0-9A-Za-z\-]+/g, "-"));
-	pairs.push("turnpoints=" + markers.map(function(marker, i) {
+
+	var turnpoints_pair = "turnpoints=" + markers.map(function(marker, i) {
 		var latLng = marker.getLatLng();
 		return ["TP" + (i + 1), latLng.lat(), latLng.lng(), "0"].join(":");
-	}).join(","));
+	}).join(",");
+
+	var gpx_pairs = [];
+	gpx_pairs.push("format=gpx");
+	gpx_pairs.push("name=" + ($F("location") + "-" + (route.distance / 1000).toFixed(0) + "km-" + route.description).replace(/[^0-9A-Za-z\-]+/g, "-"));
+	gpx_pairs.push(turnpoints_pair);
 	if (route.circuit) {
-		pairs.push("circuit=true");
+		gpx_pairs.push("circuit=true");
 	}
-	$("gpx").writeAttribute({href: "download.php?" + pairs.join("&")});
+	$("gpx").writeAttribute({href: "download.php?" + gpx_pairs.join("&")});
+
+	var bookmark_pairs = [];
+	bookmark_pairs.push("location=" + $F("location"));
+	bookmark_pairs.push("flightType=" + $F("flightType"));
+	bookmark_pairs.push("coordFormat=" + $F("coordFormat"));
+	bookmark_pairs.push(turnpoints_pair);
+	$("bookmark").writeAttribute({href: "index.php?" + bookmark_pairs.join("&")});
+
 	polylines.each(function(polyline) { map.removeOverlay(polyline); });
 	polylines = route.toPolylines();
 	polylines.each(function(polyline) { map.addOverlay(polyline); });
