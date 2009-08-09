@@ -99,10 +99,10 @@ else
 // coordinate format
 $smarty->assign('coordFormats', array
 	(
-		'utm' => 'UTM',
 		'd' => 'dd.ddddd&deg;',
 		'dm' => 'dd&deg; mm.mmm&prime;',
 		'dms' => 'dd&deg; mm&prime; ss&Prime;',
+		'utm' => 'UTM',
 		'os' => 'OS grid'
   ));
 
@@ -112,7 +112,7 @@ if(isset($_GET['coordFormat']))
 }
 else
 {
-	$smarty->assign('selCoordFormat', 'utm');
+	$smarty->assign('selCoordFormat', 'd');
 }
 
 // display template
