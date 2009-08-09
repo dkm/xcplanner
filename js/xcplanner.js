@@ -636,53 +636,6 @@ function XCUnload() {
 	GUnload();
 }
 
-function XCBookmark()
-{
-	var title;
-	var pairs = [];
-	var url;
-	var pos;
-
-	title = ($("location").value + " " + $("distance").innerHTML + " " + $("description").innerHTML);
-
-	pairs.push("location=" + $("location").value);
-	pairs.push("flightType=" + $F("flightType"));
-	pairs.push("coordFormat=" + $F("coordFormat"));
-	pairs.push("turnpoints=" + $R(0, n - 1).map(function(i)
-			{
-				var latLng = markers[i].getLatLng();
-				return ["TP" + (i + 1), latLng.lat(), latLng.lng()].join(":");
-			}).join(","));
-
-	pos = document.URL.lastIndexOf('?');
-
-	if(pos > 0)
-	{
-		url = document.URL.substring(0, pos) + "?" + pairs.join("&");
-	}
-	else
-	{
-		url = document.URL + "?" + pairs.join("&");
-	}
-
-	if(window.sidebar) // firefox
-	{
-		window.external.addPanel(title, url, "");
-	}
-	else if(window.opera && window.print)// opera
-	{
-		var elem = document.createElement('a');
-		elem.setAttribute('href', url);
-		elem.setAttribute('title', title);
-		elem.setAttribute('rel', 'sidebar');
-		elem.click();
-	}
-	else if(document.all) // ie
-	{
-		window.external.AddFavorite(url, title);
-	}
-}
-
 function XCResize()
 {
 	var viewWidth;
