@@ -54,7 +54,7 @@
 				<span>Copyright &copy; Tom Payne, <a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>, 2009</span>
 			</p>
 			<p>
-				<span>Source code is GPL-3 <a href="http://github.com/twpayne/xcplanner">here</a>, contributions welcome! Thanks to Alex Graf for the FAI sectors and to Jonty Lawson for the GPX download.</span>
+				<span>Source code is GPL-3 <a href="http://github.com/twpayne/xcplanner">here</a>. Thanks to Alex Graf, Marc Poulhies, Jonty Lawson, Victor Berchet and others for code contributions.</span>
 			</p>
 		</div>
 		<div id="right">
