@@ -55,9 +55,9 @@ $flightTypes['Leonardo'] = array
 
 $flightTypes['Coupe Fédérale de Distance'] = array
 	(
-		'cfd,2,,' => 'Distance libre sans point de contournement',
-		'cfd,3,,' => 'Distance libre via un point de contournement',
-		'cfd,4,,' => 'Distance libre via deux points de contournement',
+		'cfd,2,,' => 'Distance libre',
+		'cfd,3,,' => 'Distance libre (1 point)',
+		'cfd,4,,' => 'Distance libre (2 points)',
 		'cfd,2,circuit,' => 'Aller-retour',
 		'cfd,3,circuit,' => 'Triangle plat ou FAI',
 		'cfd,4,circuit,' => 'Quadrilatère'
