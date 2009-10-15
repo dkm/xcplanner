@@ -19,15 +19,15 @@
 			</p>
 			<p>
 				<b>Route:</b>
-				<a href="" onclick="XCRotateRoute(1); XCUpdateRoute();">&#8631;</a>
-				<a href="" onclick="XCReverseRoute(); XCUpdateRoute();">&#8644;</a>
-				<a href="" onclick="XCRotateRoute(-1); XCUpdateRoute();">&#8630;</a><br/>
+				<a href="" onclick="XCRotateRoute(1); XCUpdateRoute();" title="Rotate route forward">&#8631;</a>
+				<a href="" onclick="XCReverseRoute(); XCUpdateRoute();" title="Reverse route">&#8644;</a>
+				<a href="" onclick="XCRotateRoute(-1); XCUpdateRoute();" title="Rotate route backward">&#8630;</a><br/>
 				<span id="route"></span>
 			</p>
 			<p>
 				<b>Turnpoints:</b>
-				<a href="#" id="gpx">&darr;gpx</a>
-				<a href="#" id="bookmark">&#10025;</a>
+				<a href="#" id="gpx" title="Download GPX file of route and turnpoints">&darr;gpx</a>
+				<a href="#" id="bookmark" title="Link to this route">&#10025;</a>
 				<span id="turnpoints"></span><br/>
 				{
 					html_options name=coordFormat id="coordFormat"
