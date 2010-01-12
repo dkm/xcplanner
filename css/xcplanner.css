@@ -2,7 +2,7 @@ a {
 	text-decoration: none;
 }
 
-a:hover {
+#action:hover {
 	background: #ff0;
 }
 
