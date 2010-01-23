@@ -19,9 +19,9 @@
 			</p>
 			<p>
 				<b>Route:</b>
-				<a href="" onclick="XCRotateRoute(1); XCUpdateRoute();" title="Rotate route forward">[&#8631;]</a> &middot;
-				<a href="" onclick="XCReverseRoute(); XCUpdateRoute();" title="Reverse route">[&#8644;]</a> &middot;
-				<a href="" onclick="XCRotateRoute(-1); XCUpdateRoute();" title="Rotate route backward">[&#8630;]</a><br/>
+				<a id="action" onclick="XCRotateRoute(1); XCUpdateRoute();" title="Rotate route forward">[&#8631;]</a> &middot;
+				<a id="action" onclick="XCReverseRoute(); XCUpdateRoute();" title="Reverse route">[&#8644;]</a> &middot;
+				<a id="action" onclick="XCRotateRoute(-1); XCUpdateRoute();" title="Rotate route backward">[&#8630;]</a><br/>
 				<span id="route"></span>
 			</p>
 			<p>

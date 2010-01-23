@@ -2,7 +2,7 @@ a {
 	text-decoration: none;
 }
 
-a:hover {
+#action:hover {
 	background: #ff0;
 }
 
@@ -12,6 +12,10 @@ body {
 	background-color:#ffffff;
 	font-family:Arial;
 	font-size:12px;
+}
+
+#action {
+	color: #00f;
 }
 
 #left {

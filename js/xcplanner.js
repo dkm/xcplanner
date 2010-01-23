@@ -296,7 +296,7 @@ var Route = Class.create({
 		var table = new Element("table");
 		this.latlngs.each(function(latlng, index) {
 			var b = new Element("b").update("TP" + (index + 1).toString() + ":");
-			var a = new Element("a", {href: "", onclick: "map.setCenter(new GLatLng(" + latlng.lat() + ", " + latlng.lng() + "), 13)", title: "Zoom to TP" + (index + 1).toString()});
+			var a = new Element("a", {id: "action", onclick: "map.setCenter(new GLatLng(" + latlng.lat() + ", " + latlng.lng() + "), 13)", title: "Zoom to TP" + (index + 1).toString()});
 			a.update("[&#8853;]");
 			var tr = [b].concat(formatLatLng(latlng)).concat([a]).toTR();
 			table.appendChild(tr);	
