@@ -27,6 +27,9 @@ var COLOR = {
 	faiSectors: ["#ff0000", "#00ff00", "#0000ff"],
 };
 
+var triangleMarkerColors = COLOR.faiSectors;
+var olc5MarkerColors = [COLOR.marker, COLOR.faiSectors[0], COLOR.faiSectors[1], COLOR.faiSectors[2], COLOR.marker];
+
 var flightType = null;
 var flight = null;
 
@@ -70,6 +73,7 @@ var leagues = {
 		cfd3c: {
 			circuit: true,
 			description: "Triangle plat ou FAI",
+			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleCFD,
 			sectorSize: 3000.0,
@@ -107,6 +111,7 @@ var leagues = {
 		olc5: {
 			circuit: false,
 			description: "Free flight via 3 turnpoints",
+			markerColors: olc5MarkerColors,
 			multiplier: 1.5,
 			n: 5,
 			score: XCScoreOLC,
@@ -114,6 +119,7 @@ var leagues = {
 		olc3c: {
 			circuit: true,
 			description: "Flat or FAI triangle",
+			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleOLC,
 		},
@@ -157,6 +163,7 @@ var leagues = {
 		ukxcl3c: {
 			circuit: true,
 			description: "Flat or FAI triangle",
+			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleUKXCL,
 			sectorSize: 400.0,
@@ -599,8 +606,10 @@ function XCUpdateFlightType() {
 			flightType = league[1][key];
 		}
 	});
-	turnpointMarkers = $R(1, flightType.n).map(function(i) {
-		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: i.toString(), primaryColor: COLOR.marker});
+	var markerColors = flightType.markerColors;
+	turnpointMarkers = $R(0, flightType.n, true).map(function(i) {
+		var primaryColor = markerColors ? markerColors[i] : COLOR.marker;
+		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: primaryColor});
 		var marker = new GMarker(new GLatLng(0, 0), {draggable: true, icon: icon});
 		GEvent.addListener(marker, "drag", XCUpdateRoute);
 		return marker;
@@ -703,9 +712,9 @@ function XCUpdateRoute() {
 	}
 	if (flight.faiMarkers && $F("faiSectors")) {
 		var pixels = flight.faiMarkers.map(function(marker) { return map.fromLatLngToContainerPixel(marker.getLatLng()); });
-		overlays.push(new GPolygon(faiSector([pixels[0], pixels[1], pixels[2]]), COLOR.faiSectors[0], 1, 0.0, COLOR.faiSectors[0], 0.25));
-		overlays.push(new GPolygon(faiSector([pixels[1], pixels[2], pixels[0]]), COLOR.faiSectors[1], 1, 0.0, COLOR.faiSectors[1], 0.25));
-		overlays.push(new GPolygon(faiSector([pixels[2], pixels[0], pixels[1]]), COLOR.faiSectors[2], 1, 0.0, COLOR.faiSectors[2], 0.25));
+		overlays.push(new GPolygon(faiSector([pixels[1], pixels[2], pixels[0]]), COLOR.faiSectors[1], 1, 0.0, COLOR.faiSectors[0], 0.25));
+		overlays.push(new GPolygon(faiSector([pixels[2], pixels[0], pixels[1]]), COLOR.faiSectors[2], 1, 0.0, COLOR.faiSectors[1], 0.25));
+		overlays.push(new GPolygon(faiSector([pixels[0], pixels[1], pixels[2]]), COLOR.faiSectors[0], 1, 0.0, COLOR.faiSectors[2], 0.25));
 	}
 	if (flight.sectorCenter) {
 		if ($F("circuit") == "circle") {
