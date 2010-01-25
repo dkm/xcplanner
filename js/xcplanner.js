@@ -269,13 +269,13 @@ function arrowhead(latLngs, length, phi) {
 	var pixels = latLngs.map(function(latLng) { return map.fromLatLngToContainerPixel(latLng); });
 	var delta = new GPoint(pixels[1].x - pixels[0].x, pixels[1].y - pixels[0].y);
 	var theta = Math.atan2(delta.y, delta.x);
-	return [
-			pixels[1],
-			new GPoint(pixels[1].x - length * Math.cos(theta + phi), pixels[1].y - length * Math.sin(theta + phi)),
-			new GPoint(pixels[1].x - 0.5 * length * Math.cos(theta), pixels[1].y - 0.5 * length * Math.sin(theta)),
-			new GPoint(pixels[1].x - length * Math.cos(theta - phi), pixels[1].y - length * Math.sin(theta - phi)),
-			pixels[1],
-		].map(function(pixel) { return map.fromContainerPixelToLatLng(pixel); });
+	var result = []
+	result.push(pixels[1]);
+	result.push(new GPoint(pixels[1].x - length * Math.cos(theta + phi), pixels[1].y - length * Math.sin(theta + phi)));
+	result.push(new GPoint(pixels[1].x - 0.5 * length * Math.cos(theta), pixels[1].y - 0.5 * length * Math.sin(theta)));
+	result.push(new GPoint(pixels[1].x - length * Math.cos(theta - phi), pixels[1].y - length * Math.sin(theta - phi)));
+	result.push(pixels[1]);
+	return result.map(function(pixel) { return map.fromContainerPixelToLatLng(pixel); });
 }
 
 function circle(latLng, r, n) {
@@ -286,7 +286,6 @@ function faiSectorHelper(pixel, a, b, c, theta, flip) {
 	var x = (b * b + c * c - a * a) / (2 * c);
 	var y = Math.sqrt(b * b - x * x);
 	return new GPoint(pixel.x + x * Math.cos(theta) - y * Math.sin(theta), pixel.y + flip * (x * Math.sin(theta) + y * Math.cos(theta)));
-
 }
 
 function faiSector(pixels) {
