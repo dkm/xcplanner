@@ -42,19 +42,16 @@ var leagues = {
 			description: "Distance libre",
 			multiplier: 1.0,
 			n: 2,
-			score: XCScore,
 		},
 		cfd3: {
 			description: "Distance libre (1 point)",
 			multiplier: 1.0,
 			n: 3,
-			score: XCScore,
 		},
 		cfd4: {
 			description: "Distance libre (2 points)",
 			multiplier: 1.0,
 			n: 4,
-			score: XCScore,
 		},
 		cfd2c: {
 			circuit: true,
@@ -84,19 +81,16 @@ var leagues = {
 			description: "Free flight",
 			multiplier: 1.5,
 			n: 2,
-			score: XCScore,
 		},
 		olc3: {
 			description: "Free flight via a turnpoint",
 			multiplier: 1.5,
 			n: 3,
-			score: XCScore,
 		},
 		olc4: {
 			description: "Free flight via 2 turnpoints",
 			multiplier: 1.5,
 			n: 4,
-			score: XCScore,
 		},
 		olc5: {
 			description: "Free flight via 3 turnpoints",
@@ -116,25 +110,21 @@ var leagues = {
 			description: "Open distance",
 			multiplier: 1.0,
 			n: 2,
-			score: XCScore,
 		},
 		ukxcl3: {
 			description: "Turnpoint flight",
 			multiplier: 1.0,
 			n: 3,
-			score: XCScore,
 		},
 		ukxcl4: {
 			description: "Turnpoint flight (2 turnpoints)",
 			multiplier: 1.0,
 			n: 4,
-			score: XCScore,
 		},
 		ukxcl5: {
 			description: "Turnpoint flight (3 turnpoints)",
 			multiplier: 1.0,
 			n: 5,
-			score: XCScore,
 		},
 		ukxcl2c: {
 			circuit: true,
@@ -154,7 +144,6 @@ var leagues = {
 			description: "Flight to goal",
 			multiplier: 1.25,
 			n: 2,
-			score: XCScore,
 			sectorSize: 400.0,
 		},
 	},
@@ -647,7 +636,8 @@ function XCUpdateRoute() {
 	if (flightType.circuit) {
 		distances.push(latLngs[0].distanceFrom(latLngs[latLngs.length - 1]));
 	}
-	flight = flightType.score({distances: distances, latLngs: latLngs, totalDistance: sum(distances)});
+	var score = flightType.score || XCScore;
+	flight = score({distances: distances, latLngs: latLngs, totalDistance: sum(distances)});
 
 	// general
 	$("distance").update(formatDistance(flight.distance));
