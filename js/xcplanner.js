@@ -633,10 +633,6 @@ function XCMarkerToTR(marker, i) {
 }
 
 function XCUpdateRoute() {
-	if (overlays) {
-		overlays.each(function(o) { map.removeOverlay(o); });
-	}
-
 	// flight
 	var latLngs = turnpointMarkers.map(function(m) { return m.getLatLng(); });
 	var distances = $R(0, latLngs.length - 1, true).map(function(i) {
@@ -654,27 +650,8 @@ function XCUpdateRoute() {
 	$("multiplier").update(flight.multiplier.toFixed(2).replace(/0$/, ""));
 	$("score").update(flight.score.toFixed(2) + " points");
 
-	// route table
-	var route = new Element("table", {id: "route"});
-	$R(0, turnpointMarkers.length - 1, true).each(function(i) {
-		route.appendChild(XCLegToTR(flight, i, i + 1));
-	});
-	if (flightType.circuit) {
-		route.appendChild(XCLegToTR(flight, turnpointMarkers.length - 1, 0));
-	}
-	$("route").replace(route);
-
-	// turnpoints table
-	var turnpoints = new Element("table", {id: "turnpoints"});
-	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
-		turnpoints.appendChild(XCMarkerToTR(flight.sectorCenter, -1));
-	}
-	turnpointMarkers.each(function(marker, i) {
-		turnpoints.appendChild(XCMarkerToTR(marker, i));
-	});
-	$("turnpoints").replace(turnpoints);
-
 	// overlays
+	var _overlays = overlays;
 	overlays = [];
 	overlays.push(new GPolyline(latLngs, flight.color, 3, 1.0));
 	$R(0, latLngs.length - 1, true).each(function(i) {
@@ -702,7 +679,30 @@ function XCUpdateRoute() {
 			overlays.push(new GPolygon(sector(flight.sectorCenter.getLatLng(), theta, flight.sectorSize, Math.PI / 2.0, 32), COLOR.sector, 1, 0.0, COLOR.sector, 0.25));
 		}
 	}
+	if (_overlays) {
+		_overlays.each(function(o) { map.removeOverlay(o); });
+	}
 	overlays.each(function(o) { map.addOverlay(o); });
+
+	// route table
+	var route = new Element("table", {id: "route"});
+	$R(0, turnpointMarkers.length - 1, true).each(function(i) {
+		route.appendChild(XCLegToTR(flight, i, i + 1));
+	});
+	if (flightType.circuit) {
+		route.appendChild(XCLegToTR(flight, turnpointMarkers.length - 1, 0));
+	}
+	$("route").replace(route);
+
+	// turnpoints table
+	var turnpoints = new Element("table", {id: "turnpoints"});
+	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
+		turnpoints.appendChild(XCMarkerToTR(flight.sectorCenter, -1));
+	}
+	turnpointMarkers.each(function(marker, i) {
+		turnpoints.appendChild(XCMarkerToTR(marker, i));
+	});
+	$("turnpoints").replace(turnpoints);
 }
 
 function XCUnload() {
