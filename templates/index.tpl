@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
+<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<title>XC Planner</title>
@@ -14,51 +14,54 @@
 	</head>
 	<body onload="XCLoad()" onunload="XCUnload()" onresize="XCResize()" scroll="no">
 		<div id="left">
-			<p>
-				<span id="distance" style="font-size: 36px;">0.0km</span><br/>
-				<span id="description">Open distance</span> (&times;<span id="multiplier">1.0</span>)<br/>
-				<span id="score" style="font-size: 24px;">0.0 points</span>
-			</p>
-			<input id="location" type="text"/>
-			<input value="Go" type="submit" onclick="XCGo();"/>
-			<select name="flightType" id="flightType" onchange="XCUpdateFlightType();"></select>
-			<p>
-				<b>Route:</b>
-				<input type="submit" onclick="XCZoomRoute();" value="&#8853;"/>
-				<input type="submit" onclick="XCRotateRoute(1);" value="&#8631;"/>
-				<input type="submit" onclick="XCReverseRoute();" value="&#8644;"/>
-				<input type="submit" onclick="XCRotateRoute(-1);" value="&#8630;"/>
-				<table id="route"></table>
-			</p>
-			<p>
-				<b>Turnpoints:</b>
-				<input type="submit" onclick="XCHere();" value="&#9872;"/>
-				<input type="submit" onclick="XCDownload(&quot;gpx&quot;);" value="GPX"/>
-				<!-- <a href="#" id="bookmark" title="Link to this route">[&#10025;]</a> &middot; -->
-				<table id="turnpoints"></table>
-			</p>
-			<p>
-				<b>Preferences:</b>
-				<table>
-					<tr><td>FAI triangle areas:</td><td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td></tr>
-					<tr>
-						<td>Closed circuit area:</td>
-						<td>
-							<select id="circuit" onchange="XCUpdateRoute();">
-								<option label="none" value="none">None</option>
-								<option label="sector" value="sector" selected="yes">Sector</option>
-								<option label="circle" value="circle">Circle</option>
-							</select>
-						</td>
-					</tr>
-					<tr><td>Coordinate format:</td><td><select id="coordFormat" onchange="XCUpdateRoute();"></select></td></tr>
-					<tr><td>Distance unit:</td><td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td></tr>
-				</table>
-			</p>
+			<span id="distance" style="font-size: 36px;">0.0 km</span><br/>
+			<span id="description">Open distance</span> (&times;<span id="multiplier">1.0</span>)<br/>
+			<span id="score" style="font-size: 24px;">0.0 points</span><br/>
+			<hr/>
+			<input id="location" type="text"/><input value="Go" type="submit" onclick="XCGo();"/><br/>
+			<hr/>
+			<select name="flightType" id="flightType" onchange="XCUpdateFlightType();"></select><br/>
+			<hr/>
+			<b>Route:</b>
+			<input type="submit" onclick="XCZoomRoute();" value="&#8853;"/>
+			<input type="submit" onclick="XCRotateRoute(1);" value="&#8631;"/>
+			<input type="submit" onclick="XCReverseRoute();" value="&#8644;"/>
+			<input type="submit" onclick="XCRotateRoute(-1);" value="&#8630;"/>
+			<table id="route"></table>
+			<hr/>
+			<b>Turnpoints:</b>
+			<input type="submit" onclick="XCHere();" value="&#9872;"/>
+			<input type="submit" onclick="XCDownload(&quot;gpx&quot;);" value="GPX"/>
+			<!-- <a href="#" id="bookmark" title="Link to this route">[&#10025;]</a> &middot; -->
+			<table id="turnpoints"></table>
+			<hr/>
+			<b>Preferences:</b>
+			<table>
+				<tr>
+					<td>FAI triangle areas:</td>
+					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
+				</tr>
+				<tr>
+					<td>Closed circuit area:</td>
+					<td>
+						<select id="circuit" onchange="XCUpdateRoute();">
+							<option label="none" value="none">None</option>
+							<option label="sector" value="sector" selected="yes">Sector</option>
+							<option label="circle" value="circle">Circle</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>Coordinate format:</td>
+					<td><select id="coordFormat" onchange="XCUpdateRoute();"></select></td>
+				</tr>
+				<tr>
+					<td>Distance unit:</td>
+					<td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td>
+				</tr>
+			</table>
+			<hr/>
 			<p>XC Planner Copyright &copy; 2009, 2010 Tom Payne &lt;<a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>&gt;</p>
-			<!-- <p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p> -->
-			<!-- <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.</p> -->
-			<!-- <p>You should have received a copy of the GNU General Public License along with this program.  If not, see &lt;<a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>&gt;.</p> -->
 			<p><a href="http://github.com/twpayne/xcplanner/">http://github.com/twpayne/xcplanner/</a></p>
 			<p>Thanks to:
 				Victor Berchet &middot;
