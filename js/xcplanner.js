@@ -39,21 +39,18 @@ var sectorMarker = null;
 var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
 		cfd2: {
-			circuit: false,
 			description: "Distance libre",
 			multiplier: 1.0,
 			n: 2,
 			score: XCScore,
 		},
 		cfd3: {
-			circuit: false,
 			description: "Distance libre (1 point)",
 			multiplier: 1.0,
 			n: 3,
 			score: XCScore,
 		},
 		cfd4: {
-			circuit: false,
 			description: "Distance libre (2 points)",
 			multiplier: 1.0,
 			n: 4,
@@ -84,28 +81,24 @@ var leagues = {
 	},
 	"Leonardo / OLC / XContest": {
 		olc2: {
-			circuit: false,
 			description: "Free flight",
 			multiplier: 1.5,
 			n: 2,
 			score: XCScore,
 		},
 		olc3: {
-			circuit: false,
 			description: "Free flight via a turnpoint",
 			multiplier: 1.5,
 			n: 3,
 			score: XCScore,
 		},
 		olc4: {
-			circuit: false,
 			description: "Free flight via 2 turnpoints",
 			multiplier: 1.5,
 			n: 4,
 			score: XCScore,
 		},
 		olc5: {
-			circuit: false,
 			description: "Free flight via 3 turnpoints",
 			multiplier: 1.5,
 			n: 5,
@@ -120,28 +113,24 @@ var leagues = {
 	},
 	"UK National XC League": {
 		ukxcl2: {
-			circuit: false,
 			description: "Open distance",
 			multiplier: 1.0,
 			n: 2,
 			score: XCScore,
 		},
 		ukxcl3: {
-			circuit: false,
 			description: "Turnpoint flight",
 			multiplier: 1.0,
 			n: 3,
 			score: XCScore,
 		},
 		ukxcl4: {
-			circuit: false,
 			description: "Turnpoint flight (2 turnpoints)",
 			multiplier: 1.0,
 			n: 4,
 			score: XCScore,
 		},
 		ukxcl5: {
-			circuit: false,
 			description: "Turnpoint flight (3 turnpoints)",
 			multiplier: 1.0,
 			n: 5,
@@ -162,7 +151,6 @@ var leagues = {
 			sectorSize: 400.0,
 		},
 		ukxcl2d: {
-			circuit: false,
 			description: "Flight to goal",
 			multiplier: 1.25,
 			n: 2,
