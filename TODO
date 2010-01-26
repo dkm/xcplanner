@@ -6,8 +6,11 @@ Automatically generate declarations
 Add reason for invalid
 Add XContest airspace
 Make reverse and rotate conditional on route type
-Add colaboration feature
+Add collaboration feature
 Remember turnpoints
 Add bookmark route feature
-Add option to completely disable circuit area
+Don't reset turnpoints on change of flight type
 Make it beautiful
+Add remaining UK XC league flight types
+
+# vim: set spell spelllang=en:
