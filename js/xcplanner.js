@@ -23,7 +23,7 @@ var COLOR = {
 	invalid: "#ff0000",
 	marker: "#ff00ff",
 	sector: "#ffff00",
-	faiSectors: ["#ff0000", "#00ff00", "#0000ff"],
+	faiSectors: ["#0000ff", "#00ff00", "#ff0000"],
 };
 
 var triangleMarkerColors = COLOR.faiSectors;
