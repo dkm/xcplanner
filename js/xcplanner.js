@@ -301,33 +301,6 @@ function sector(latLng, theta, r, phi, n) {
 	return result;
 }
 
-function XCDownload(format) {
-	var route = {
-		circuit: flightType.circuit,
-		description: flight.description,
-		distance: formatDistance(flight.distance),
-		"location": $F("location"),
-		turnpoints: turnpointMarkers.map(function(marker, i) {
-			var latLng = marker.getLatLng();
-			return {
-				name: "TP" + (i + 1).toString(),
-				ele: 0,
-				lat: latLng.lat(),
-				lng: latLng.lng(),
-			};
-		}),
-	};
-	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
-		route.turnpoints.unshift({
-			name: "TP0",
-			ele: 0,
-			lat: flight.sectorCenter.getLatLng().lat(),
-			lng: flight.sectorCenter.getLatLng().lng(),
-		});
-	}
-	document.location = "download.php?format=" + format + "&route=" + escape(JSON.stringify(route));
-}
-
 function XCGo() {
 	geocoder.getLatLng($F("location"), function(latLng) { XCMapSetCenter(latLng); });
 }
@@ -780,6 +753,32 @@ function XCUpdateRoute() {
 		pairs.push("sector=" + escape(json([latLng.lat(), latLng.lng()])));
 	}
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
+
+	// gpx
+	var turnpoints = []
+	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
+		turnpoints.push({
+			name: "TP0",
+			lat: flight.sectorCenter.getLatLng().lat(),
+			lng: flight.sectorCenter.getLatLng().lng(),
+		});
+	}
+	turnpointMarkers.each(function(marker, i) {
+		var latLng = marker.getLatLng();
+		turnpoints.push({
+			name: "TP" + (i + 1).toString(),
+			lat: latLng.lat(),
+			lng: latLng.lng(),
+		});
+	});
+	var route = {
+		circuit: flightType.circuit,
+		description: flight.description,
+		distance: formatDistance(flight.distance),
+		"location": $F("location"),
+		turnpoints: turnpoints,
+	};
+	$("gpx").writeAttribute({href: "download.php?format=gpx&route=" + escape(JSON.stringify(route))});
 }
 
 function XCUnload() {

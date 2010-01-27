@@ -34,8 +34,8 @@
 			<table id="turnpoints"></table>
 			<hr/>
 			<b>Save:</b>
-			<input type="submit" onclick="XCDownload(&quot;gpx&quot;);" value="GPX"/>
 			<a id="link">link</a>
+			<a id="gpx">gpx</a>
 			<hr/>
 			<b>Preferences:</b>
 			<table>
