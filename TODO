@@ -11,5 +11,6 @@ Make it beautiful
 Add remaining UK XC league flight types
 Remove defaultCoordFormat
 Remove defaultDistanceFormat
+Go to location when Enter is pressed
 
 # vim: set spell spelllang=en:
