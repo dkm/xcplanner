@@ -7,9 +7,6 @@ Add reason for invalid
 Add XContest airspace
 Make reverse and rotate conditional on route type
 Add collaboration feature
-Remember turnpoints
-Add bookmark route feature
-Don't reset turnpoints on change of flight type
 Make it beautiful
 Add remaining UK XC league flight types
 Remove defaultCoordFormat

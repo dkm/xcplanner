@@ -8,6 +8,7 @@ $smarty->assign("GOOGLE_MAPS_API_KEY", $GOOGLE_MAPS_API_KEY);
 $smarty->assign("location", isset($_GET["location"]) ? $_GET["location"] : $DEFAULT_LOCATION);
 $smarty->assign("flightType", isset($_GET["flightType"]) ? $_GET["flightType"] : $DEFAULT_FLIGHT_TYPE);
 $smarty->assign("turnpoints", json_encode(isset($_GET["turnpoints"]) ? json_decode($_GET["turnpoints"]) : $DEFAULT_TURNPOINT));
+$smarty->assign("sector", json_encode(isset($_GET["sector"]) ? json_decode($_GET["sector"]) : $DEFAULT_SECTOR));
 $smarty->assign("coordFormat", isset($_GET["coordFormat"]) ? $_GET["coordFormat"] : $DEFAULT_COORD_FORMAT);
 $smarty->assign("distanceFormat", isset($_GET["distanceFormat"]) ? $_GET["distanceFormat"] : $DEFAULT_DISTANCE_FORMAT);
 $smarty->display("index.tpl");

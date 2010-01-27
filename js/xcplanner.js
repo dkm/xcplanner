@@ -16,7 +16,6 @@
 
 var R = 6371000.0;
 var DEFAULT_ZOOM = 10;
-var DEFAULT_TURNPOINT_ZOOM = 13;
 var COLOR = {
 	good: "#ff00ff",
 	better: "#00ffff",
@@ -35,7 +34,9 @@ var flight = null;
 
 var geocoder = null;
 var map = null;
-var turnpointMarkers = null;
+var defaultTurnpointLatLngs = [];
+var defaultSectorLatLng = null;
+var turnpointMarkers = [];
 var overlays = null;
 var sectorMarker = null;
 
@@ -300,37 +301,8 @@ function sector(latLng, theta, r, phi, n) {
 	return result;
 }
 
-function XCDownload(format) {
-	var route = {
-		circuit: flightType.circuit,
-		description: flight.description,
-		distance: formatDistance(flight.distance),
-		"location": $F("location"),
-		turnpoints: turnpointMarkers.map(function(marker, i) {
-			var latLng = marker.getLatLng();
-			return {
-				name: "TP" + (i + 1).toString(),
-				ele: 0,
-				lat: latLng.lat(),
-				lng: latLng.lng(),
-			};
-		}),
-	};
-	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
-		route.turnpoints.unshift({
-			name: "TP0",
-			ele: 0,
-			lat: flight.sectorCenter.getLatLng().lat(),
-			lng: flight.sectorCenter.getLatLng().lng(),
-		});
-	}
-	document.location = "download.php?format=" + format + "&route=" + escape(JSON.stringify(route));
-}
-
 function XCGo() {
-	if (geocoder) {
-		geocoder.getLatLng($F("location"), XCSetCenter);
-	}
+	geocoder.getLatLng($F("location"), function(latLng) { XCMapSetCenter(latLng); });
 }
 
 function XCLoad() {
@@ -351,27 +323,78 @@ function XCLoad() {
 		$("distanceFormat").appendChild(new Element("option", {label: distanceFormatPair[0], value: distanceFormatPair[0]}).update(distanceFormatPair[0]));
 	});
 	$("distanceFormat").setValue($F("defaultDistanceFormat"));
+	var bounds = null;
+	var defaultTurnpoints = $F("defaultTurnpoints") && JSON.parse($F("defaultTurnpoints"));
+	if (defaultTurnpoints) {
+		defaultTurnpoints.each(function(pair, i) {
+			defaultTurnpointLatLngs[i] = new GLatLng(pair[0], pair[1]);
+			if (bounds) {
+				bounds.extend(defaultTurnpointLatLngs[i]);
+			} else {
+				bounds = new GLatLngBounds(defaultTurnpointLatLngs[i], defaultTurnpointLatLngs[i]);
+			}
+		});
+	}
+	var defaultSector = $F("defaultSector") && JSON.parse($F("defaultSector"));
+	if (defaultSector) {
+		defaultSectorLatLng = new GLatLng(defaultSector[0], defaultSector[1]);
+		if (bounds) {
+			bounds.extend(defaultSectorLatLng);
+		} else {
+			bounds = new GLatLngBounds(defaultSectorLatLng, defaultSectorLatLng);
+		}
+	}
 	XCResize();
 	if (GBrowserIsCompatible()) {
 		geocoder = new GClientGeocoder();
-		XCGo();
+		if (bounds) {
+			XCMapSetBounds(bounds);
+			XCSetDefaultTurnpoints(false);
+			XCUpdateFlightType();
+		} else {
+			geocoder.getLatLng($F("location"), function(latLng) {
+				XCMapSetCenter(latLng, DEFAULT_ZOOM);
+				XCSetDefaultTurnpoints(false);
+				XCUpdateFlightType();
+			});
+		}
 	}
 }
 
 function XCHere() {
-	XCPlaceDefaultTurnpoints();
+	XCSetDefaultTurnpoints(true);
+	turnpointMarkers.each(function(marker, i) {
+		marker.setLatLng(defaultTurnpointLatLngs[i]);
+	});
+	if (sectorMarker) {
+		sectorMarker.setLatLng(defaultSectorLatLng);
+	}
 	XCUpdateRoute();
 }
 
-function XCPlaceDefaultTurnpoints() {
+function XCSaveDefaultTurnpoints() {
+	turnpointMarkers.each(function(marker, i) {
+		defaultTurnpointLatLngs[i] = marker.getLatLng();
+	});
+	if (sectorMarker) {
+		defaultSectorLatLng = sectorMarker.getLatLng();
+	}
+}
+
+function XCSetDefaultTurnpoints(replace) {
 	var bounds = map.getBounds();
 	var sw = bounds.getSouthWest();
 	var ne = bounds.getNorthEast();
-	turnpointMarkers.each(function(marker, i) {
-		var lat = sw.lat() + [2, 2, 1, 1, 1.5][i] * (ne.lat() - sw.lat()) / 3;
-		var lng = sw.lng() + [1, 2, 2, 1, 1.5][i] * (ne.lng() - sw.lng()) / 3;
-		marker.setLatLng(new GLatLng(lat, lng));
+	$R(0, 5, true).each(function(i) {
+		if (replace || !defaultTurnpointLatLngs[i]) {
+			var lat = sw.lat() + [2, 2, 1, 1, 1.5][i] * (ne.lat() - sw.lat()) / 3;
+			var lng = sw.lng() + [1, 2, 2, 1, 1.5][i] * (ne.lng() - sw.lng()) / 3;
+			defaultTurnpointLatLngs[i] = new GLatLng(lat, lng);
+		}
 	});
+	if (replace || !defaultSectorLatLng) {
+		defaultSectorLatLng = bounds.getCenter();
+	}
 }
 
 function XCResize() {
@@ -395,18 +418,29 @@ function XCRotateRoute(delta) {
 	XCUpdateRoute();
 }
 
-function XCSetCenter(latLng) {
-	if (!map) {
-		map = new GMap2($("map"));
-		map.setCenter(latLng || new GLatLng(0, 0), DEFAULT_ZOOM);
-		map.setUIToDefault();
-		map.setMapType(G_PHYSICAL_MAP);
-		GEvent.addListener(map, "zoomend", XCUpdateRoute);
-	} else if (latLng) {
+function XCMapCreate(latLng, zoom) {
+	map = new GMap2($("map"));
+	map.setCenter(latLng, zoom);
+	map.setUIToDefault();
+	map.setMapType(G_PHYSICAL_MAP);
+	GEvent.addListener(map, "zoomend", XCUpdateRoute);
+}
+
+function XCMapSetCenter(latLng, zoom) {
+	if (map) {
 		map.setCenter(latLng, DEFAULT_ZOOM);
+	} else {
+		XCMapCreate(latLng, zoom);
+		XCSetDefaultTurnpoints(false);
 	}
-	if (!turnpointMarkers) {
-		XCUpdateFlightType();
+}
+
+function XCMapSetBounds(bounds) {
+	if (map) {
+		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+	} else {
+		XCMapCreate(bounds.getCenter(), DEFAULT_ZOOM);
+		map.setZoom(map.getBoundsZoomLevel(bounds));
 	}
 }
 
@@ -570,9 +604,8 @@ function XCScoreTriangleUKXCL(flight) {
 }
 
 function XCUpdateFlightType() {
-	if (turnpointMarkers) {
-		turnpointMarkers.each(function(m, i) { map.removeOverlay(m); });
-	}
+	XCSaveDefaultTurnpoints();
+	turnpointMarkers.each(function(m, i) { map.removeOverlay(m); });
 	if (sectorMarker) {
 		map.removeOverlay(sectorMarker);
 	}
@@ -587,25 +620,19 @@ function XCUpdateFlightType() {
 	turnpointMarkers = $R(0, flightType.n, true).map(function(i) {
 		var primaryColor = markerColors ? markerColors[i] : COLOR.marker;
 		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: primaryColor});
-		var marker = new GMarker(new GLatLng(0, 0), {draggable: true, icon: icon});
+		var marker = new GMarker(defaultTurnpointLatLngs[i], {draggable: true, icon: icon});
 		GEvent.addListener(marker, "drag", XCUpdateRoute);
 		return marker;
 	});
-	XCPlaceDefaultTurnpoints();
-	turnpointMarkers.each(function(m, i) { map.addOverlay(m); });
 	if (flightType.circuit) {
-		var pixel = new GPoint(0.0, 0.0);
-		turnpointMarkers.each(function(marker, i) {
-			var p = map.fromLatLngToContainerPixel(marker.getLatLng());
-			pixel.x += p.x;
-			pixel.y += p.y;
-		});
-		pixel.x /= turnpointMarkers.length;
-		pixel.y /= turnpointMarkers.length;
-		var latLng = map.fromContainerPixelToLatLng(pixel);
 		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: "0", primaryColor: COLOR.marker});
-		sectorMarker = new GMarker(latLng, {draggable: true, icon: icon});
+		sectorMarker = new GMarker(defaultSectorLatLng, {draggable: true, icon: icon});
 		GEvent.addListener(sectorMarker, "drag", XCUpdateRoute);
+	} else {
+		sectorMarker = null;
+	}
+	turnpointMarkers.each(function(m, i) { map.addOverlay(m); });
+	if (sectorMarker) {
 		map.addOverlay(sectorMarker);
 	}
 	XCUpdateRoute();
@@ -633,6 +660,10 @@ function XCMarkerToTR(marker, i) {
 }
 
 function XCUpdateRoute() {
+	if (!flightType) {
+		return;
+	}
+
 	// flight
 	var latLngs = turnpointMarkers.map(function(m) { return m.getLatLng(); });
 	var distances = $R(0, latLngs.length - 1, true).map(function(i) {
@@ -703,6 +734,51 @@ function XCUpdateRoute() {
 		turnpoints.appendChild(XCMarkerToTR(marker, i));
 	});
 	$("turnpoints").replace(turnpoints);
+
+	// link
+	var pairs = [];
+	pairs.push("location=" + escape($F("location")));
+	pairs.push("flightType=" + $F("flightType"));
+	var turnpoints = turnpointMarkers.map(function(marker) {
+		var latLng = marker.getLatLng();
+		return [latLng.lat(), latLng.lng()];
+	});
+	var json = function(o) { // FIXME
+		var s = JSON.stringify(o);
+		return s.substr(1, s.length - 2).replace(/\s+/g, "");
+	};
+	pairs.push("turnpoints=" + escape(json(turnpoints)));
+	if (sectorMarker) {
+		var latLng = sectorMarker.getLatLng();
+		pairs.push("sector=" + escape(json([latLng.lat(), latLng.lng()])));
+	}
+	$("link").writeAttribute({href: "?" + pairs.join("&")});
+
+	// gpx
+	var turnpoints = []
+	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
+		turnpoints.push({
+			name: "TP0",
+			lat: flight.sectorCenter.getLatLng().lat(),
+			lng: flight.sectorCenter.getLatLng().lng(),
+		});
+	}
+	turnpointMarkers.each(function(marker, i) {
+		var latLng = marker.getLatLng();
+		turnpoints.push({
+			name: "TP" + (i + 1).toString(),
+			lat: latLng.lat(),
+			lng: latLng.lng(),
+		});
+	});
+	var route = {
+		circuit: flightType.circuit,
+		description: flight.description,
+		distance: formatDistance(flight.distance),
+		"location": $F("location"),
+		turnpoints: turnpoints,
+	};
+	$("gpx").writeAttribute({href: "download.php?format=gpx&route=" + escape(JSON.stringify(route))});
 }
 
 function XCUnload() {
@@ -717,7 +793,7 @@ function XCUnload() {
 function XCZoomLeg(i, j) {
 	var bounds = new GLatLngBounds(turnpointMarkers[i].getLatLng(), turnpointMarkers[i].getLatLng());
 	bounds.extend(turnpointMarkers[j].getLatLng());
-	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+	XCMapSetBounds(bounds);
 }
 
 function XCZoomRoute() {
@@ -725,12 +801,11 @@ function XCZoomRoute() {
 	turnpointMarkers.each(function(marker) {
 		bounds.extend(marker.getLatLng());
 	});
-	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+	XCMapSetBounds(bounds);
 }
 
 function XCZoomTurnpoint(i) {
 	var marker = i < 0 ? flight.sectorCenter : turnpointMarkers[i];
-	if (marker) {
-		map.setCenter(marker.getLatLng(), DEFAULT_TURNPOINT_ZOOM);
-	}
+	var latLng = marker.getLatLng();
+	XCMapSetBounds(new GLatLngBounds(latLng, latLng));
 }
