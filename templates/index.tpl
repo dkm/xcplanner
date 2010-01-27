@@ -31,9 +31,11 @@
 			<hr/>
 			<b>Turnpoints:</b>
 			<input type="submit" onclick="XCHere();" value="&#9872;"/>
-			<input type="submit" onclick="XCDownload(&quot;gpx&quot;);" value="GPX"/>
-			<!-- <a href="#" id="bookmark" title="Link to this route">[&#10025;]</a> &middot; -->
 			<table id="turnpoints"></table>
+			<hr/>
+			<b>Save:</b>
+			<input type="submit" onclick="XCDownload(&quot;gpx&quot;);" value="GPX"/>
+			<a id="link">link</a>
 			<hr/>
 			<b>Preferences:</b>
 			<table>

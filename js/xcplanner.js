@@ -761,6 +761,25 @@ function XCUpdateRoute() {
 		turnpoints.appendChild(XCMarkerToTR(marker, i));
 	});
 	$("turnpoints").replace(turnpoints);
+
+	// link
+	var pairs = [];
+	pairs.push("location=" + escape($F("location")));
+	pairs.push("flightType=" + $F("flightType"));
+	var turnpoints = turnpointMarkers.map(function(marker) {
+		var latLng = marker.getLatLng();
+		return [latLng.lat(), latLng.lng()];
+	});
+	var json = function(o) { // FIXME
+		var s = JSON.stringify(o);
+		return s.substr(1, s.length - 2).replace(/\s+/g, "");
+	};
+	pairs.push("turnpoints=" + escape(json(turnpoints)));
+	if (sectorMarker) {
+		var latLng = sectorMarker.getLatLng();
+		pairs.push("sector=" + escape(json([latLng.lat(), latLng.lng()])));
+	}
+	$("link").writeAttribute({href: "?" + pairs.join("&")});
 }
 
 function XCUnload() {
