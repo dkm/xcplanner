@@ -15,7 +15,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var R = 6371000.0;
-var DEFAULT_ZOOM = 10;
 var COLOR = {
 	good: "#ff00ff",
 	better: "#00ffff",
@@ -302,10 +301,15 @@ function sector(latLng, theta, r, phi, n) {
 }
 
 function XCGo() {
-	geocoder.getLatLng($F("location"), function(latLng) { XCMapSetCenter(latLng); });
+	geocoder.getLatLng($F("location"), function(latLng) {
+		map.setCenter(latLng);
+	});
 }
 
 function XCLoad() {
+	if (!GBrowserIsCompatible()) {
+		return;
+	}
 	$("location").setValue($F("defaultLocation"));
 	$H(leagues).each(function(leaguePair) {
 		var optgroup = new Element("optgroup", {label: leaguePair[0]});
@@ -345,19 +349,21 @@ function XCLoad() {
 		}
 	}
 	XCResize();
-	if (GBrowserIsCompatible()) {
-		geocoder = new GClientGeocoder();
-		if (bounds) {
-			XCMapSetBounds(bounds);
+	geocoder = new GClientGeocoder();
+	map = new GMap2($("map"));
+	map.setUIToDefault();
+	map.setMapType(G_PHYSICAL_MAP);
+	GEvent.addListener(map, "zoomend", XCUpdateRoute);
+	if (bounds) {
+		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+		XCSetDefaultTurnpoints(false);
+		XCUpdateFlightType();
+	} else {
+		geocoder.getLatLng($F("location"), function(latLng) {
+			map.setCenter(latLng, 10);
 			XCSetDefaultTurnpoints(false);
 			XCUpdateFlightType();
-		} else {
-			geocoder.getLatLng($F("location"), function(latLng) {
-				XCMapSetCenter(latLng, DEFAULT_ZOOM);
-				XCSetDefaultTurnpoints(false);
-				XCUpdateFlightType();
-			});
-		}
+		});
 	}
 }
 
@@ -416,32 +422,6 @@ function XCRotateRoute(delta) {
 		marker.setLatLng(latLngs[(i + delta + latLngs.length) % latLngs.length]);
 	});
 	XCUpdateRoute();
-}
-
-function XCMapCreate(latLng, zoom) {
-	map = new GMap2($("map"));
-	map.setCenter(latLng, zoom);
-	map.setUIToDefault();
-	map.setMapType(G_PHYSICAL_MAP);
-	GEvent.addListener(map, "zoomend", XCUpdateRoute);
-}
-
-function XCMapSetCenter(latLng, zoom) {
-	if (map) {
-		map.setCenter(latLng, DEFAULT_ZOOM);
-	} else {
-		XCMapCreate(latLng, zoom);
-		XCSetDefaultTurnpoints(false);
-	}
-}
-
-function XCMapSetBounds(bounds) {
-	if (map) {
-		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
-	} else {
-		XCMapCreate(bounds.getCenter(), DEFAULT_ZOOM);
-		map.setZoom(map.getBoundsZoomLevel(bounds));
-	}
 }
 
 function XCScore(flight) {
@@ -793,7 +773,7 @@ function XCUnload() {
 function XCZoomLeg(i, j) {
 	var bounds = new GLatLngBounds(turnpointMarkers[i].getLatLng(), turnpointMarkers[i].getLatLng());
 	bounds.extend(turnpointMarkers[j].getLatLng());
-	XCMapSetBounds(bounds);
+	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 }
 
 function XCZoomRoute() {
@@ -801,11 +781,11 @@ function XCZoomRoute() {
 	turnpointMarkers.each(function(marker) {
 		bounds.extend(marker.getLatLng());
 	});
-	XCMapSetBounds(bounds);
+	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 }
 
 function XCZoomTurnpoint(i) {
 	var marker = i < 0 ? flight.sectorCenter : turnpointMarkers[i];
-	var latLng = marker.getLatLng();
-	XCMapSetBounds(new GLatLngBounds(latLng, latLng));
+	var bounds = new GLatLngBounds(marker.getLatLng(), marker.getLatLng());
+	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 }
