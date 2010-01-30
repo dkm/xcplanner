@@ -41,11 +41,11 @@
 			<b>Preferences:</b>
 			<table>
 				<tr>
-					<td>FAI triangle areas:</td>
+					<td><label for="faiSectors">FAI triangle areas:</label></td>
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
 				</tr>
 				<tr>
-					<td>Closed circuit area:</td>
+					<td><label for="circuit">Closed circuit area:</label></td>
 					<td>
 						<select id="circuit" onchange="XCUpdateRoute();">
 							<option label="none" value="none">None</option>
@@ -55,11 +55,11 @@
 					</td>
 				</tr>
 				<tr>
-					<td>Coordinate format:</td>
+					<td><label for="coordFormat">Coordinate format:</label></td>
 					<td><select id="coordFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
 				<tr>
-					<td>Distance unit:</td>
+					<td><label for="distanceUnit">Distance unit:</label></td>
 					<td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
 			</table>
