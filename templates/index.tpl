@@ -75,8 +75,6 @@
 			</p>
 			<input id="defaultLocation" type="hidden" value="{$location|escape}"/>
 			<input id="defaultFlightType" type="hidden" value="{$flightType|escape}"/>
-			<input id="defaultCoordFormat" type="hidden" value="{$coordFormat|escape}"/>
-			<input id="defaultDistanceFormat" type="hidden" value="{$distanceFormat|escape}"/>
 			<input id="defaultTurnpoints" type="hidden" value="{$turnpoints|escape}"/>
 			<input id="defaultSector" type="hidden" value="{$sector|escape}"/>
 		</div>

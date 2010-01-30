@@ -6,8 +6,6 @@ $DEFAULT_LOCATION = "Fiesch";
 $DEFAULT_FLIGHT_TYPE = "olc5";
 $DEFAULT_TURNPOINTS = null;
 $DEFAULT_SECTOR = null;
-$DEFAULT_COORD_FORMAT = "d";
-$DEFAULT_DISTANCE_FORMAT = "km";
 
 if (function_exists("date_default_timezone_set"))
     date_default_timezone_set("UTC");

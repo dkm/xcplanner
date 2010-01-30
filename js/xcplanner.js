@@ -319,14 +319,6 @@ function XCLoad() {
 		$("flightType").appendChild(optgroup);
 	});
 	$("flightType").setValue($F("defaultFlightType"));
-	$H(coordFormats).each(function(coordFormatPair) {
-		$("coordFormat").appendChild(new Element("option", {label: coordFormatPair[1], value: coordFormatPair[0]}).update(coordFormatPair[1]));
-	});
-	$("coordFormat").setValue($F("defaultCoordFormat"));
-	$H(distanceFormats).each(function(distanceFormatPair) {
-		$("distanceFormat").appendChild(new Element("option", {label: distanceFormatPair[0], value: distanceFormatPair[0]}).update(distanceFormatPair[0]));
-	});
-	$("distanceFormat").setValue($F("defaultDistanceFormat"));
 	var bounds = null;
 	var defaultTurnpoints = $F("defaultTurnpoints") && JSON.parse($F("defaultTurnpoints"));
 	if (defaultTurnpoints) {
@@ -348,6 +340,14 @@ function XCLoad() {
 			bounds = new GLatLngBounds(defaultSectorLatLng, defaultSectorLatLng);
 		}
 	}
+	$H(coordFormats).each(function(coordFormatPair) {
+		$("coordFormat").appendChild(new Element("option", {label: coordFormatPair[1], value: coordFormatPair[0]}).update(coordFormatPair[1]));
+	});
+	$("coordFormat").setValue("dms");
+	$H(distanceFormats).each(function(distanceFormatPair) {
+		$("distanceFormat").appendChild(new Element("option", {label: distanceFormatPair[0], value: distanceFormatPair[0]}).update(distanceFormatPair[0]));
+	});
+	$("distanceFormat").setValue("mi");
 	XCResize();
 	geocoder = new GClientGeocoder();
 	map = new GMap2($("map"));
