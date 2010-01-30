@@ -1,5 +1,7 @@
 <?php
 
+$DEBUG = 0;
+
 require_once("config.php");
 require_once("$SMARTY_DIR/Smarty.class.php");
 
@@ -10,13 +12,24 @@ if (get_magic_quotes_gpc()) {
 }
 
 $route["turnpoints"] = json_decode($route["turnpoints"], true);
+foreach ($route["turnpoints"] as $key => $turnpoint) {
+	if (!$turnpoint["ele"]) {
+		$route["turnpoints"][$key]["ele"] = $get_elevation($turnpoint["lat"], $turnpoint["lng"]);
+	}
+}
 $filename = preg_replace("/[^\\s\\w\\-.]+/", "", implode(" ", array($route["location"], $route["distance"], $route["description"])));
 $smarty = new Smarty;
 $smarty->assign("route", $route);
 if ($_GET["format"] == "gpx") {
-	header("Content-Type: application/octet-stream");
-	header("Content-Disposition: inline; filename=\"$filename.gpx\"");
-	$smarty->display("download_gpx.tpl");
+	if ($DEBUG) {
+		print "<pre>";
+		print htmlentities($smarty->fetch("download_gpx.tpl"));
+		print "</pre>";
+	} else {
+		header("Content-Type: application/octet-stream");
+		header("Content-Disposition: inline; filename=\"$filename.gpx\"");
+		$smarty->display("download_gpx.tpl");
+	}
 }
 
 ?>
