@@ -18,7 +18,9 @@
 			<span id="description">Open distance</span> (&times;<span id="multiplier">1.0</span>)<br/>
 			<span id="score" style="font-size: 24px;">0.0 points</span><br/>
 			<hr/>
-			<input id="location" type="text"/><input value="Go" type="submit" onclick="XCGo();"/><br/>
+			<input id="location" type="text"/>
+			<input type="submit" onclick="XCGo();" value="Go"/>
+			<input type="submit" onclick="XCHere();" value="Reset"/><br/>
 			<hr/>
 			<select name="flightType" id="flightType" onchange="XCUpdateFlightType();"></select><br/>
 			<hr/>
@@ -30,7 +32,6 @@
 			<table id="route"></table>
 			<hr/>
 			<b>Turnpoints:</b>
-			<input type="submit" onclick="XCHere();" value="&#9872;"/>
 			<table id="turnpoints"></table>
 			<hr/>
 			<b>Save:</b>
