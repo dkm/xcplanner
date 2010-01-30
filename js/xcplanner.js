@@ -621,7 +621,7 @@ function XCUpdateFlightType() {
 function XCLegToTR(flight, i, j) {
 	var tr = new Element("tr");
 	var td = new Element("td");
-	td.appendChild(new Element("input", {type: "submit", value: "\u2295", onclick: "XCZoomLeg(" + i.toString() + ", " + j.toString() + ");"}));
+	td.appendChild(new Element("input", {type: "submit", value: "\u2295", onclick: "XCZoomLeg(" + i.toString() + ", " + j.toString() + ");", title: "Zoom to leg"}));
 	tr.appendChild(td);
 	tr.appendChild(new Element("th").update("TP" + (i + 1).toString() + "\u2192TP" + (j + 1).toString()));
 	tr.appendChild(new Element("td").update(formatDistance(flight.distances[i])));
@@ -632,7 +632,7 @@ function XCLegToTR(flight, i, j) {
 function XCMarkerToTR(marker, i) {
 	var tr = new Element("tr");
 	var td = new Element("td");
-	td.appendChild(new Element("input", {type: "submit", value: "\u2295", onclick: "XCZoomTurnpoint(" + i.toString() + ");"}));
+	td.appendChild(new Element("input", {type: "submit", value: "\u2295", onclick: "XCZoomTurnpoint(" + i.toString() + ");", title: "Zoom to turnpoint"}));
 	tr.appendChild(td);
 	tr.appendChild(new Element("th").update("TP" + (i + 1).toString()));
 	formatLatLng(marker.getLatLng()).each(function(s) { tr.appendChild(new Element("td").update(s)); });

@@ -19,16 +19,16 @@
 			<span id="score" style="font-size: 24px;">0.0 points</span><br/>
 			<hr/>
 			<input id="location" type="text"/>
-			<input type="submit" onclick="XCGo();" value="Go"/>
-			<input type="submit" onclick="XCHere();" value="Reset"/><br/>
+			<input type="submit" onclick="XCGo();" value="Go" title="Center the map on this location"/>
+			<input type="submit" onclick="XCHere();" value="Reset" title="Place the turnpoints on the map" /><br/>
 			<hr/>
 			<select name="flightType" id="flightType" onchange="XCUpdateFlightType();"></select><br/>
 			<hr/>
 			<b>Route:</b>
-			<input type="submit" onclick="XCZoomRoute();" value="&#8853;"/>
-			<input type="submit" onclick="XCRotateRoute(1);" value="&#8631;"/>
-			<input type="submit" onclick="XCReverseRoute();" value="&#8644;"/>
-			<input type="submit" onclick="XCRotateRoute(-1);" value="&#8630;"/>
+			<input type="submit" onclick="XCZoomRoute();" value="&#8853;" title="Show the whole route"/>
+			<input type="submit" onclick="XCRotateRoute(1);" value="&#8631;" title="Rotate clockwise"/>
+			<input type="submit" onclick="XCReverseRoute();" value="&#8644;" title="Reverse"/>
+			<input type="submit" onclick="XCRotateRoute(-1);" value="&#8630;" title="Rotate anti-clockwise"/>
 			<table id="route"></table>
 			<hr/>
 			<b>Turnpoints:</b>
