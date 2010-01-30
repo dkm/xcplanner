@@ -21,7 +21,7 @@ var COLOR = {
 	best: "#ffff00",
 	invalid: "#ff0000",
 	marker: "#ff00ff",
-	sector: "#ffff00",
+	circuit: "#ffff00",
 	faiSectors: ["#00ff00", "#0000ff", "#ff0000"],
 };
 
@@ -34,10 +34,10 @@ var flight = null;
 var geocoder = null;
 var map = null;
 var defaultTurnpointLatLngs = [];
-var defaultSectorLatLng = null;
+var defaultStartLatLng = null;
 var turnpointMarkers = [];
 var overlays = null;
-var sectorMarker = null;
+var startMarker = null;
 
 var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
@@ -62,7 +62,7 @@ var leagues = {
 			multiplier: 1.2,
 			n: 2,
 			score: XCScoreOutAndReturn,
-			sectorSize: 3000.0,
+			circuitSize: 3000.0,
 		},
 		cfd3c: {
 			circuit: true,
@@ -70,14 +70,14 @@ var leagues = {
 			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleCFD,
-			sectorSize: 3000.0,
+			circuitSize: 3000.0,
 		},
 		cfd4c: {
 			circuit: true,
 			description: "Quadrilat\u00e8re",
 			n: 4,
 			score: XCScoreQuadrilateralCFD,
-			sectorSize: 3000.0,
+			circuitSize: 3000.0,
 		},
 	},
 	"Leonardo / OLC / XContest": {
@@ -137,7 +137,7 @@ var leagues = {
 			description: "Out and return",
 			n: 2,
 			score: XCScoreOutAndReturnUKXCL,
-			sectorSize: 400.0,
+			circuitSize: 400.0,
 		},
 		ukxcl3c: {
 			circuit: true,
@@ -145,13 +145,13 @@ var leagues = {
 			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleUKXCL,
-			sectorSize: 400.0,
+			circuitSize: 400.0,
 		},
 		ukxcl2d: {
 			description: "Flight to goal",
 			multiplier: 1.25,
 			n: 2,
-			sectorSize: 400.0,
+			circuitSize: 400.0,
 		},
 	},
 };
@@ -331,13 +331,13 @@ function XCLoad() {
 			}
 		});
 	}
-	var defaultSector = $F("defaultSector") && JSON.parse($F("defaultSector"));
-	if (defaultSector) {
-		defaultSectorLatLng = new GLatLng(defaultSector[0], defaultSector[1]);
+	var defaultStart = $F("defaultStart") && JSON.parse($F("defaultStart"));
+	if (defaultStart) {
+		defaultStartLatLng = new GLatLng(defaultStart[0], defaultStart[1]);
 		if (bounds) {
-			bounds.extend(defaultSectorLatLng);
+			bounds.extend(defaultStartLatLng);
 		} else {
-			bounds = new GLatLngBounds(defaultSectorLatLng, defaultSectorLatLng);
+			bounds = new GLatLngBounds(defaultStartLatLng, defaultStartLatLng);
 		}
 	}
 	$H(coordFormats).each(function(coordFormatPair) {
@@ -372,8 +372,8 @@ function XCHere() {
 	turnpointMarkers.each(function(marker, i) {
 		marker.setLatLng(defaultTurnpointLatLngs[i]);
 	});
-	if (sectorMarker) {
-		sectorMarker.setLatLng(defaultSectorLatLng);
+	if (startMarker) {
+		startMarker.setLatLng(defaultStartLatLng);
 	}
 	XCUpdateRoute();
 }
@@ -382,8 +382,8 @@ function XCSaveDefaultTurnpoints() {
 	turnpointMarkers.each(function(marker, i) {
 		defaultTurnpointLatLngs[i] = marker.getLatLng();
 	});
-	if (sectorMarker) {
-		defaultSectorLatLng = sectorMarker.getLatLng();
+	if (startMarker) {
+		defaultStartLatLng = startMarker.getLatLng();
 	}
 }
 
@@ -398,8 +398,8 @@ function XCSetDefaultTurnpoints(replace) {
 			defaultTurnpointLatLngs[i] = new GLatLng(lat, lng);
 		}
 	});
-	if (replace || !defaultSectorLatLng) {
-		defaultSectorLatLng = bounds.getCenter();
+	if (replace || !defaultStartLatLng) {
+		defaultStartLatLng = bounds.getCenter();
 	}
 }
 
@@ -431,9 +431,9 @@ function XCScore(flight) {
 	flight.distance = flight.totalDistance;
 	flight.multiplier = flightType.multiplier;
 	flight.score = flight.totalDistance * flightType.multiplier / 1000.0;
-	flight.sectorCenter = null;
-	flight.sectorSize = flightType.sectorSize;
-	flight.sectorTarget = null;
+	flight.circuitCenter = null;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = null;
 	return flight;
 }
 
@@ -444,18 +444,18 @@ function XCScoreOutAndReturn(flight) {
 	flight.distance = flight.totalDistance;
 	flight.multiplier = flightType.multiplier;
 	flight.score = flight.totalDistance * flightType.multiplier / 1000.0;
-	flight.sectorCenter = sectorMarker;
-	flight.sectorSize = flightType.sectorSize;
-	flight.sectorTarget = turnpointMarkers[1];
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[1];
 	return flight;
 }
 
 function XCScoreOutAndReturnUKXCL(flight) {
 	flight.circuit = true;
 	flight.distance = flight.totalDistance;
-	flight.sectorCenter = sectorMarker;
-	flight.sectorSize = flightType.sectorSize;
-	flight.sectorTarget = turnpointMarkers[1];
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[1];
 	if (flight.totalDistance < 15000.0) {
 		flight.color = COLOR.invalid;
 		flight.description = "Invalid";
@@ -481,9 +481,9 @@ function XCScoreOLC(flight) {
 	freeFlight.distance = freeFlight.totalDistance;
 	freeFlight.multiplier = flightType.multiplier;
 	freeFlight.score = freeFlight.totalDistance * flightType.multiplier / 1000.0;
-	freeFlight.sectorCenter = turnpointMarkers[0];
-	freeFlight.sectorSize = 0.2 * triangleDistance;
-	freeFlight.sectorTarget = turnpointMarkers[4];
+	freeFlight.circuitCenter = turnpointMarkers[0];
+	freeFlight.circuitSize = 0.2 * triangleDistance;
+	freeFlight.circuitTarget = turnpointMarkers[4];
 	var triangleDistances = [flight.distances[1], flight.distances[2], flight.latLngs[1].distanceFrom(flight.latLngs[3], R)];
 	var triangleDistance = sum(triangleDistances);
 	var gapDistance = flight.latLngs[4].distanceFrom(flight.latLngs[0], R);
@@ -495,9 +495,9 @@ function XCScoreOLC(flight) {
 	triangleFlight.circuit = true;
 	triangleFlight.distance = triangleDistance - gapDistance;
 	triangleFlight.faiMarkers = freeFlight.faiMarkers;
-	triangleFlight.sectorCenter = turnpointMarkers[0];
-	triangleFlight.sectorSize = 0.2 * triangleDistance;
-	triangleFlight.sectorTarget = turnpointMarkers[4];
+	triangleFlight.circuitCenter = turnpointMarkers[0];
+	triangleFlight.circuitSize = 0.2 * triangleDistance;
+	triangleFlight.circuitTarget = turnpointMarkers[4];
 	if (triangleDistances.min() / triangleDistance < 0.28) {
 		triangleFlight.color = COLOR.better;
 		triangleFlight.description = "Flat triangle";
@@ -518,9 +518,9 @@ function XCScoreOLC(flight) {
 function XCScoreQuadrilateralCFD(flight) {
 	flight.circuit = true;
 	flight.distance = flight.totalDistance;
-	flight.sectorCenter = sectorMarker;
-	flight.sectorSize = flightType.sectorSize;
-	flight.sectorTarget = turnpointMarkers[3];
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[3];
 	var pixels = turnpointMarkers.map(function(marker) { return map.fromLatLngToContainerPixel(marker.getLatLng()); });
 	if (flight.distances.min() / flight.totalDistance < 0.15 || !isConvex(pixels)) {
 		flight.color = COLOR.invalid;
@@ -535,13 +535,13 @@ function XCScoreQuadrilateralCFD(flight) {
 	return flight;
 }
 
-function XCScoreTriangle(flight, flat, fai, sectorSize) {
+function XCScoreTriangle(flight, flat, fai, circuitSize) {
 	flight.circuit = true;
 	flight.distance = flight.totalDistance;
 	flight.faiMarkers = turnpointMarkers;
-	flight.sectorCenter = sectorMarker;
-	flight.sectorSize = sectorSize;
-	flight.sectorTarget = turnpointMarkers[2];
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = circuitSize;
+	flight.circuitTarget = turnpointMarkers[2];
 	if (flight.distances.min() / flight.totalDistance < 0.28) {
 		flight.color = COLOR.good;
 		flight.description = flat.description;
@@ -556,7 +556,7 @@ function XCScoreTriangle(flight, flat, fai, sectorSize) {
 }
 
 function XCScoreTriangleCFD(flight) {
-	return XCScoreTriangle(flight, {description: "Triangle plat", multiplier: 1.2}, {description: "Triangle FAI", multiplier: 1.4}, flightType.sectorSize);
+	return XCScoreTriangle(flight, {description: "Triangle plat", multiplier: 1.2}, {description: "Triangle FAI", multiplier: 1.4}, flightType.circuitSize);
 }
 
 function XCScoreTriangleOLC(flight) {
@@ -567,9 +567,9 @@ function XCScoreTriangleUKXCL(flight) {
 	flight.circuit = true;
 	flight.distance = flight.totalDistance;
 	flight.faiMarkers = turnpointMarkers;
-	flight.sectorCenter = sectorMarker;
-	flight.sectorSize = flightType.sectorSize;
-	flight.sectorTarget = turnpointMarkers[2];
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[2];
 	if (flight.distances.min() / flight.totalDistance < 0.28) {
 		flight.color = COLOR.good;
 		flight.description = "Flat triangle";
@@ -586,8 +586,8 @@ function XCScoreTriangleUKXCL(flight) {
 function XCUpdateFlightType() {
 	XCSaveDefaultTurnpoints();
 	turnpointMarkers.each(function(m, i) { map.removeOverlay(m); });
-	if (sectorMarker) {
-		map.removeOverlay(sectorMarker);
+	if (startMarker) {
+		map.removeOverlay(startMarker);
 	}
 	flightType = null;
 	var key = $F("flightType");
@@ -606,14 +606,14 @@ function XCUpdateFlightType() {
 	});
 	if (flightType.circuit) {
 		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: "0", primaryColor: COLOR.marker});
-		sectorMarker = new GMarker(defaultSectorLatLng, {draggable: true, icon: icon});
-		GEvent.addListener(sectorMarker, "drag", XCUpdateRoute);
+		startMarker = new GMarker(defaultStartLatLng, {draggable: true, icon: icon});
+		GEvent.addListener(startMarker, "drag", XCUpdateRoute);
 	} else {
-		sectorMarker = null;
+		startMarker = null;
 	}
 	turnpointMarkers.each(function(m, i) { map.addOverlay(m); });
-	if (sectorMarker) {
-		map.addOverlay(sectorMarker);
+	if (startMarker) {
+		map.addOverlay(startMarker);
 	}
 	XCUpdateRoute();
 }
@@ -672,9 +672,9 @@ function XCUpdateRoute() {
 		overlays.push(new GPolyline([latLngs[latLngs.length - 1], latLngs[0]], flight.color, 1, 0.75));
 	}
 	if (flightType.circuit && flight.circuit) {
-		overlays.push(new GPolyline([latLngs[latLngs.length - 1], sectorMarker.getLatLng(), latLngs[0]], flight.color, 3, 1.0));
-		overlays.push(new GPolygon(arrowhead([sectorMarker.getLatLng(), latLngs[0]], 16, Math.PI / 8.0), flight.color, 1, 1.0, flight.color, 1.0));
-		overlays.push(new GPolygon(arrowhead([latLngs[latLngs.length - 1], sectorMarker.getLatLng()], 16, Math.PI / 8.0), flight.color, 1, 1.0, flight.color, 1.0));
+		overlays.push(new GPolyline([latLngs[latLngs.length - 1], startMarker.getLatLng(), latLngs[0]], flight.color, 3, 1.0));
+		overlays.push(new GPolygon(arrowhead([startMarker.getLatLng(), latLngs[0]], 16, Math.PI / 8.0), flight.color, 1, 1.0, flight.color, 1.0));
+		overlays.push(new GPolygon(arrowhead([latLngs[latLngs.length - 1], startMarker.getLatLng()], 16, Math.PI / 8.0), flight.color, 1, 1.0, flight.color, 1.0));
 	}
 	if (flight.faiMarkers && $F("faiSectors")) {
 		var pixels = flight.faiMarkers.map(function(marker) { return map.fromLatLngToContainerPixel(marker.getLatLng()); });
@@ -682,12 +682,12 @@ function XCUpdateRoute() {
 		overlays.push(new GPolygon(faiSector([pixels[2], pixels[0], pixels[1]]), COLOR.faiSectors[2], 1, 0.0, COLOR.faiSectors[1], 0.25));
 		overlays.push(new GPolygon(faiSector([pixels[0], pixels[1], pixels[2]]), COLOR.faiSectors[0], 1, 0.0, COLOR.faiSectors[2], 0.25));
 	}
-	if (flight.sectorCenter) {
+	if (flight.circuitCenter) {
 		if ($F("circuit") == "circle") {
-			overlays.push(new GPolygon(circle(flight.sectorCenter.getLatLng(), flight.sectorSize, 32), COLOR.sector, 1, 0.0, COLOR.sector, 0.25));
+			overlays.push(new GPolygon(circle(flight.circuitCenter.getLatLng(), flight.circuitSize, 32), COLOR.circuit, 1, 0.0, COLOR.circuit, 0.25));
 		} else if ($F("circuit") == "sector") {
-			var theta = initialBearingTo(flight.sectorCenter.getLatLng(), flight.sectorTarget.getLatLng());
-			overlays.push(new GPolygon(sector(flight.sectorCenter.getLatLng(), theta, flight.sectorSize, Math.PI / 2.0, 32), COLOR.sector, 1, 0.0, COLOR.sector, 0.25));
+			var theta = initialBearingTo(flight.circuitCenter.getLatLng(), flight.circuitTarget.getLatLng());
+			overlays.push(new GPolygon(sector(flight.circuitCenter.getLatLng(), theta, flight.circuitSize, Math.PI / 2.0, 32), COLOR.circuit, 1, 0.0, COLOR.circuit, 0.25));
 		}
 	}
 	if (_overlays) {
@@ -707,8 +707,8 @@ function XCUpdateRoute() {
 
 	// turnpoints table
 	var turnpoints = new Element("table", {id: "turnpoints"});
-	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
-		turnpoints.appendChild(XCMarkerToTR(flight.sectorCenter, -1));
+	if (flight.circuitCenter && !turnpointMarkers.include(flight.circuitCenter)) {
+		turnpoints.appendChild(XCMarkerToTR(flight.circuitCenter, -1));
 	}
 	turnpointMarkers.each(function(marker, i) {
 		turnpoints.appendChild(XCMarkerToTR(marker, i));
@@ -725,19 +725,19 @@ function XCUpdateRoute() {
 		turnpoints.push("[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
 	});
 	pairs.push("turnpoints=[" + turnpoints.join(",") + "]");
-	if (sectorMarker) {
-		var latLng = sectorMarker.getLatLng();
-		pairs.push("sector=[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
+	if (startMarker) {
+		var latLng = startMarker.getLatLng();
+		pairs.push("start=[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
 	}
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
 	// gpx
 	var turnpoints = []
-	if (flight.sectorCenter && !turnpointMarkers.include(flight.sectorCenter)) {
+	if (flight.circuitCenter && !turnpointMarkers.include(flight.circuitCenter)) {
 		turnpoints.push({
 			name: "TP0",
-			lat: flight.sectorCenter.getLatLng().lat(),
-			lng: flight.sectorCenter.getLatLng().lng(),
+			lat: flight.circuitCenter.getLatLng().lat(),
+			lng: flight.circuitCenter.getLatLng().lng(),
 		});
 	}
 	turnpointMarkers.each(function(marker, i) {
@@ -762,7 +762,7 @@ function XCUnload() {
 	geocoder = null;
 	map = null;
 	turnpointMarkers = null;
-	sectorMarker = null;
+	startMarker = null;
 	overlays = null;
 	GUnload();
 }
@@ -782,7 +782,7 @@ function XCZoomRoute() {
 }
 
 function XCZoomTurnpoint(i) {
-	var marker = i < 0 ? flight.sectorCenter : turnpointMarkers[i];
+	var marker = i < 0 ? flight.circuitCenter : turnpointMarkers[i];
 	var bounds = new GLatLngBounds(marker.getLatLng(), marker.getLatLng());
 	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 }

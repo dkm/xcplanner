@@ -5,7 +5,7 @@ $SMARTY_DIR = "smarty";
 $DEFAULT_LOCATION = "Fiesch";
 $DEFAULT_FLIGHT_TYPE = "olc5";
 $DEFAULT_TURNPOINTS = null;
-$DEFAULT_SECTOR = null;
+$DEFAULT_START = null;
 
 if (function_exists("date_default_timezone_set"))
     date_default_timezone_set("UTC");

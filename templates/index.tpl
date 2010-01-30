@@ -76,7 +76,7 @@
 			<input id="defaultLocation" type="hidden" value="{$location|escape}"/>
 			<input id="defaultFlightType" type="hidden" value="{$flightType|escape}"/>
 			<input id="defaultTurnpoints" type="hidden" value="{$turnpoints|escape}"/>
-			<input id="defaultSector" type="hidden" value="{$sector|escape}"/>
+			<input id="defaultStart" type="hidden" value="{$start|escape}"/>
 		</div>
 		<div id="right">
 			<div id="map"></div>
