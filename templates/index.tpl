@@ -18,7 +18,7 @@
 			<span id="description">Open distance</span> (&times;<span id="multiplier">1.0</span>)<br/>
 			<span id="score" style="font-size: 24px;">0.0 points</span><br/>
 			<hr/>
-			<input id="location" type="text"/>
+			<input id="location" type="text" onkeypress="XCGoOnEnter(event);"/>
 			<input type="submit" onclick="XCGo();" value="Go" title="Center the map on this location"/>
 			<input type="submit" onclick="XCHere();" value="Reset" title="Place the turnpoints on the map" /><br/>
 			<hr/>

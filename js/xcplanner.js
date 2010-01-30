@@ -306,6 +306,18 @@ function XCGo() {
 	});
 }
 
+function XCGoOnEnter(e) {
+	if (window.event) {
+		if (window.event.keyCode == 13) {
+			XCGo();
+		}
+	} else if (e) {
+		if (e.which == 13) {
+			XCGo();
+		}
+	}
+}
+
 function XCLoad() {
 	if (!GBrowserIsCompatible()) {
 		return;
