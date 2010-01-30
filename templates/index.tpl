@@ -62,6 +62,10 @@
 					<td><label for="distanceUnit">Distance unit:</label></td>
 					<td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
+				<tr>
+					<td><label for="altitudeUnit">Altitude unit:</label></td>
+					<td><select id="altitudeFormat" onchange="XCUpdateRoute();"></select></td>
+				</tr>
 			</table>
 			<hr/>
 			<p>XC Planner Copyright &copy; 2009, 2010 Tom Payne &lt;<a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>&gt;</p>
