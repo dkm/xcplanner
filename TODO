@@ -12,5 +12,6 @@ Add remaining UK XC league flight types
 Remove defaultCoordFormat
 Remove defaultDistanceFormat
 Go to location when Enter is pressed
+Add turnpoint altitudes from SRTM data
 
 # vim: set spell spelllang=en:
