@@ -719,18 +719,15 @@ function XCUpdateRoute() {
 	var pairs = [];
 	pairs.push("location=" + escape($F("location")));
 	pairs.push("flightType=" + $F("flightType"));
-	var turnpoints = turnpointMarkers.map(function(marker) {
+	var turnpoints = [];
+	turnpointMarkers.each(function(marker) {
 		var latLng = marker.getLatLng();
-		return [latLng.lat(), latLng.lng()];
+		turnpoints.push("[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
 	});
-	var json = function(o) { // FIXME
-		var s = JSON.stringify(o);
-		return s.substr(1, s.length - 2).replace(/\s+/g, "");
-	};
-	pairs.push("turnpoints=" + escape(json(turnpoints)));
+	pairs.push("turnpoints=[" + turnpoints.join(",") + "]");
 	if (sectorMarker) {
 		var latLng = sectorMarker.getLatLng();
-		pairs.push("sector=" + escape(json([latLng.lat(), latLng.lng()])));
+		pairs.push("sector=[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
 	}
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
