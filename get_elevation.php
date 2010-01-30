@@ -1,7 +1,6 @@
 <?php
 
 require_once("config.php");
-require_once("lib/xcplanner.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
 	print $get_elevation(floatval($_GET["lat"]), floatval($_GET["lng"]));
