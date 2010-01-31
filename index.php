@@ -3,6 +3,9 @@
 require_once("config.php");
 require_once("$SMARTY_DIR/Smarty.class.php");
 
+if (function_exists("date_default_timezone_set"))
+    date_default_timezone_set("UTC");
+
 $smarty = new Smarty;
 $smarty->assign("GOOGLE_MAPS_API_KEY", $GOOGLE_MAPS_API_KEY);
 
@@ -55,9 +58,9 @@ $flightTypes['Leonardo'] = array
 
 $flightTypes['Coupe Fédérale de Distance'] = array
 	(
-		'cfd,2,,' => 'Distance libre sans point de contournement',
-		'cfd,3,,' => 'Distance libre via un point de contournement',
-		'cfd,4,,' => 'Distance libre via deux points de contournement',
+		'cfd,2,,' => 'Distance libre',
+		'cfd,3,,' => 'Distance libre (1 point)',
+		'cfd,4,,' => 'Distance libre (2 points)',
 		'cfd,2,circuit,' => 'Aller-retour',
 		'cfd,3,circuit,' => 'Triangle plat ou FAI',
 		'cfd,4,circuit,' => 'Quadrilatère'
@@ -99,10 +102,10 @@ else
 // coordinate format
 $smarty->assign('coordFormats', array
 	(
-		'utm' => 'UTM',
 		'd' => 'dd.ddddd&deg;',
 		'dm' => 'dd&deg; mm.mmm&prime;',
 		'dms' => 'dd&deg; mm&prime; ss&Prime;',
+		'utm' => 'UTM',
 		'os' => 'OS grid'
   ));
 
@@ -112,7 +115,7 @@ if(isset($_GET['coordFormat']))
 }
 else
 {
-	$smarty->assign('selCoordFormat', 'utm');
+	$smarty->assign('selCoordFormat', 'd');
 }
 
 // display template

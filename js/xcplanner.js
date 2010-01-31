@@ -295,9 +295,10 @@ var Route = Class.create({
 	turnpointsToHTML: function() {
 		var table = new Element("table");
 		this.latlngs.each(function(latlng, index) {
-			var a = new Element("a", {onclick: "map.setCenter(new GLatLng(" + latlng.lat() + ", " + latlng.lng() + "), 13)"});
-			a.appendChild(new Element("b").update("TP" + (index + 1).toString() + ":"));
-			var tr = [a].concat(formatLatLng(latlng)).toTR();
+			var b = new Element("b").update("TP" + (index + 1).toString() + ":");
+			var a = new Element("a", {id: "action", onclick: "map.setCenter(new GLatLng(" + latlng.lat() + ", " + latlng.lng() + "), 13)", title: "Zoom to TP" + (index + 1).toString()});
+			a.update("[&#8853;]");
+			var tr = [b].concat(formatLatLng(latlng)).concat([a]).toTR();
 			table.appendChild(tr);	
 		});
 		return table;
@@ -450,19 +451,27 @@ function XCUpdateRoute() {
 	$("score").update((route.multiplier * route.distance / 1000).toFixed(2) + " points");
 	$("route").update(route.toHTML());
 	$("turnpoints").update(route.turnpointsToHTML());
-	var pairs = [];
-	pairs.push("format=gpx");
-	pairs.push("name=" + ($F("location") + "-" + (route.distance / 1000).toFixed(0) + "km-" + route.description).replace(/[^0-9A-Za-z\-]+/g, "-"));
-	pairs.push("turnpoints=" + markers.map(function(marker, i) {
+
+	var turnpoints_pair = "turnpoints=" + markers.map(function(marker, i) {
 		var latLng = marker.getLatLng();
 		return ["TP" + (i + 1), latLng.lat(), latLng.lng(), "0"].join(":");
-	}).join(","));
-	if (route.circuit) {
-		pairs.push("circuit=true");
-	}
-	$("gpx").writeAttribute({href: "download.php?" + pairs.join("&")});
+	}).join(",");
 
-	$("link").writeAttribute({href: XCGetUrl()});
+	var gpx_pairs = [];
+	gpx_pairs.push("format=gpx");
+	gpx_pairs.push("name=" + ($F("location") + "-" + (route.distance / 1000).toFixed(0) + "km-" + route.description).replace(/[^0-9A-Za-z\-]+/g, "-"));
+	gpx_pairs.push(turnpoints_pair);
+	if (route.circuit) {
+		gpx_pairs.push("circuit=true");
+	}
+	$("gpx").writeAttribute({href: "download.php?" + gpx_pairs.join("&")});
+
+	var bookmark_pairs = [];
+	bookmark_pairs.push("location=" + $F("location"));
+	bookmark_pairs.push("flightType=" + $F("flightType"));
+	bookmark_pairs.push("coordFormat=" + $F("coordFormat"));
+	bookmark_pairs.push(turnpoints_pair);
+	$("bookmark").writeAttribute({href: "index.php?" + bookmark_pairs.join("&")});
 
 	polylines.each(function(polyline) { map.removeOverlay(polyline); });
 	polylines = route.toPolylines();
@@ -624,7 +633,7 @@ function orient2dTri(latlng1, latlng2, latlng3)
 
 function XCLoad(turnpoints) {
 	turnpts = turnpoints;
-
+	XCResize();
 	if (GBrowserIsCompatible()) {
 		geocoder = new GClientGeocoder();
 		XCGoto();
@@ -639,57 +648,21 @@ function XCUnload() {
 	GUnload();
 }
 
-function XCGetUrl(){
-	var pairs = [];
-	var url;
-	var pos;
-
-	pairs.push("location=" + $("location").value);
-	pairs.push("flightType=" + $F("flightType"));
-	pairs.push("coordFormat=" + $F("coordFormat"));
-	pairs.push("turnpoints=" + $R(0, n - 1).map(function(i)
-			{
-				var latLng = markers[i].getLatLng();
-				return ["TP" + (i + 1), latLng.lat(), latLng.lng()].join(":");
-			}).join(","));
-
-	pos = document.URL.lastIndexOf('?');
-
-	if(pos > 0)
-	{
-		url = document.URL.substring(0, pos) + "?" + pairs.join("&");
-	}
-	else
-	{
-		url = document.URL + "?" + pairs.join("&");
-	}
-	return url;
-}
-
-function XCBookmark()
+function XCResize()
 {
-	var title;
-	var url;
+	var viewWidth;
+	var viewHeight;
 
-
-	title = ($("location").value + " " + $("distance").innerHTML + " " + $("description").innerHTML);
-
-	url = XCGetUrl();
-
-	if(window.sidebar) // firefox
-	{
-		window.external.addPanel(title, url, "");
+	if (typeof window.innerWidth != "undefined") {
+		viewWidth = window.innerWidth;
+		viewHeight = window.innerHeight;
+	} else if (typeof document.documentElement != "undefined" && typeof document.documentElement.clientWidth != "undefined" && document.documentElement.clientWidth != 0) {
+		viewWidth = document.documentElement.clientWidth;
+		viewHeight = document.documentElement.clientHeight;
+	} else {
+		viewWidth = document.getElementsByTagName("body")[0].clientWidth;
+		viewHeight = document.getElementsByTagName("body")[0].clientHeight;
 	}
-	else if(window.opera && window.print)// opera
-	{
-		var elem = document.createElement('a');
-		elem.setAttribute('href', url);
-		elem.setAttribute('title', title);
-		elem.setAttribute('rel', 'sidebar');
-		elem.click();
-	}
-	else if(document.all) // ie
-	{
-		window.external.AddFavorite(url, title);
-	}
+	$("map").style.width = (viewWidth - 305) + "px";
+	$("map").style.height = (viewHeight - 25) + "px";
 }
