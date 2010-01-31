@@ -1,5 +1,5 @@
-//  xcplanner - Google Maps XC planning tool
-//  Copyright (C) 2009  Tom Payne
+//  XC Planner  Google Maps XC planning tool
+//  Copyright (C) 2009, 2010  Tom Payne
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -15,83 +15,215 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 var R = 6371000.0;
-var zoom = 10;
-var declared = false;
+var COLOR = {
+	good: "#ff00ff",
+	better: "#00ffff",
+	best: "#ffff00",
+	invalid: "#ff0000",
+	marker: "#ff00ff",
+	circuit: "#ffff00",
+	faiSectors: ["#00ff00", "#0000ff", "#ff0000"],
+};
+
+var triangleMarkerColors = COLOR.faiSectors;
+var olc5MarkerColors = [COLOR.marker, COLOR.faiSectors[0], COLOR.faiSectors[1], COLOR.faiSectors[2], COLOR.marker];
+
+var flightType = null;
+var flight = null;
+
 var geocoder = null;
 var map = null;
-var markers = null;
-var polylines = [];
-var league = null;
-var n = null;
-var circuit = null;
-var sectors = [];
-var turnpts = []
+var defaultTurnpointLatLngs = [];
+var defaultStartLatLng = null;
+var turnpointMarkers = [];
+var overlays = null;
+var startMarker = null;
+var rev = 0;
+var elevationCache = {}
 
-Object.extend(Array.prototype, {
-	toTR: function() {
-		var tr = new Element("tr");
-		this.each(function(element, index) {
-			tr.appendChild(new Element("td").update(element));
-		});
-		return tr;
-	}
-});
+var leagues = {
+	"Coupe F\u00e9d\u00e9rale de Distance": {
+		cfd2: {
+			description: "Distance libre",
+			multiplier: 1.0,
+			n: 2,
+		},
+		cfd3: {
+			description: "Distance libre (1 point)",
+			multiplier: 1.0,
+			n: 3,
+		},
+		cfd4: {
+			description: "Distance libre (2 points)",
+			multiplier: 1.0,
+			n: 4,
+		},
+		cfd2c: {
+			circuit: true,
+			description: "Aller-retour",
+			multiplier: 1.2,
+			n: 2,
+			score: XCScoreOutAndReturn,
+			circuitSize: 3000.0,
+		},
+		cfd3c: {
+			circuit: true,
+			description: "Triangle plat ou FAI",
+			markerColors: triangleMarkerColors,
+			n: 3,
+			score: XCScoreTriangleCFD,
+			circuitSize: 3000.0,
+		},
+		cfd4c: {
+			circuit: true,
+			description: "Quadrilat\u00e8re",
+			n: 4,
+			score: XCScoreQuadrilateralCFD,
+			circuitSize: 3000.0,
+		},
+	},
+	"Leonardo / OLC / XContest": {
+		olc2: {
+			description: "Free flight",
+			multiplier: 1.5,
+			n: 2,
+		},
+		olc3: {
+			description: "Free flight via a turnpoint",
+			multiplier: 1.5,
+			n: 3,
+		},
+		olc4: {
+			description: "Free flight via 2 turnpoints",
+			multiplier: 1.5,
+			n: 4,
+		},
+		olc5: {
+			description: "Free flight via 3 turnpoints",
+			markerColors: olc5MarkerColors,
+			multiplier: 1.5,
+			n: 5,
+			score: XCScoreOLC,
+		},
+		olc3c: {
+			circuit: true,
+			description: "Flat or FAI triangle",
+			markerColors: triangleMarkerColors,
+			n: 3,
+			score: XCScoreTriangleOLC,
+		},
+	},
+	"UK National XC League": {
+		ukxcl2: {
+			description: "Open distance",
+			multiplier: 1.0,
+			n: 2,
+		},
+		ukxcl3: {
+			description: "Turnpoint flight",
+			multiplier: 1.0,
+			n: 3,
+		},
+		ukxcl4: {
+			description: "Turnpoint flight (2 turnpoints)",
+			multiplier: 1.0,
+			n: 4,
+		},
+		ukxcl5: {
+			description: "Turnpoint flight (3 turnpoints)",
+			multiplier: 1.0,
+			n: 5,
+		},
+		ukxcl2c: {
+			circuit: true,
+			description: "Out and return",
+			n: 2,
+			score: XCScoreOutAndReturnUKXCL,
+			circuitSize: 400.0,
+		},
+		ukxcl3c: {
+			circuit: true,
+			description: "Flat or FAI triangle",
+			markerColors: triangleMarkerColors,
+			n: 3,
+			score: XCScoreTriangleUKXCL,
+			circuitSize: 400.0,
+		},
+		ukxcl2d: {
+			description: "Flight to goal",
+			multiplier: 1.25,
+			n: 2,
+			circuitSize: 400.0,
+		},
+	},
+};
 
-function initialBearingTo(latlng1, latlng2) {
-	var y = Math.sin(latlng1.lngRadians() - latlng2.lngRadians()) * Math.cos(latlng2.latRadians());
-	var x = Math.cos(latlng1.latRadians()) * Math.sin(latlng2.latRadians()) - Math.sin(latlng1.latRadians()) * Math.cos(latlng2.latRadians()) * Math.cos(latlng1.lngRadians() - latlng2.lngRadians());
+var coordFormats = {
+	d: "dd.ddddd\u00b0",
+	dm: "dd\u00b0 mm.mmm\u2032",
+	dms: "dd\u00b0 mm\u2032 ss\u2033",
+	utm: "UTM",
+	os: "OS grid",
+};
+
+var elevationFormats = {
+	m: function(m) { return m.toString() + " m"; },
+	feet: function(m) { return (m * 3.2808399).toFixed(0) + " ft"; },
+}
+
+var distanceFormats = {
+	km: function(m) { return (m / 1000.0).toFixed(2) + " km"; },
+	miles: function(m) { return (m / 1609.0).toFixed(2) + " mi"; },
+	nm: function(m) { return (m / 1852.0).toFixed(2) + " nm"; },
+}
+
+function sum(enumerable) {
+	return enumerable.inject(0, function(a, x) { return a + x; });
+}
+
+function initialBearingTo(latLng1, latLng2) {
+	var y = Math.sin(latLng1.lngRadians() - latLng2.lngRadians()) * Math.cos(latLng2.latRadians());
+	var x = Math.cos(latLng1.latRadians()) * Math.sin(latLng2.latRadians()) - Math.sin(latLng1.latRadians()) * Math.cos(latLng2.latRadians()) * Math.cos(latLng1.lngRadians() - latLng2.lngRadians());
 	return -Math.atan2(y, x);
 }
 
-function latLngAt(latlng, bearing, distance) {
-	var lat = Math.asin(Math.sin(latlng.latRadians()) * Math.cos(distance) + Math.cos(latlng.latRadians()) * Math.sin(distance) * Math.cos(bearing));
-	var lng = latlng.lngRadians() + Math.atan2(Math.sin(bearing) * Math.sin(distance) * Math.cos(latlng.latRadians()), Math.cos(distance) - Math.sin(latlng.latRadians()) * Math.sin(lat));
+function latLngAt(latLng, bearing, distance) {
+	var lat = Math.asin(Math.sin(latLng.latRadians()) * Math.cos(distance) + Math.cos(latLng.latRadians()) * Math.sin(distance) * Math.cos(bearing));
+	var lng = latLng.lngRadians() + Math.atan2(Math.sin(bearing) * Math.sin(distance) * Math.cos(latLng.latRadians()), Math.cos(distance) - Math.sin(latLng.latRadians()) * Math.sin(lat));
 	return new GLatLng(180.0 * lat / Math.PI, 180.0 * lng / Math.PI);
 }
 
-function latLngAtXY(latlng, x, y)
-{
-	return latLngAt(latlng, Math.atan2(x, y), Math.sqrt(x*x + y*y) / R);
+function formatElevation(m) {
+	return m == -9999 ? "" : elevationFormats[$F("elevationFormat")](m);
 }
 
-function XCReverseRoute() {
-	var latlngs = markers.map(function(marker) { return marker.getLatLng(); });
-	markers.each(function(marker, i) {
-		if (i < n) {
-			marker.setLatLng(latlngs[n - 1 - i]);
-		}
-	});
+function formatDistance(m) {
+	return distanceFormats[$F("distanceFormat")](m);
 }
 
-function XCRotateRoute(direction) {
-	var latlngs = markers.map(function(marker) { return marker.getLatLng(); });
-	markers.each(function(marker, i) {
-		if (i < n) {
-			marker.setLatLng(latlngs[(i + direction + n) % n]);
-		}
-	});
-}
-
-function formatLatLng(latlng) {
+function formatLatLng(latLng, tr) {
 	var coordFormat = $F("coordFormat");
 	if (coordFormat == "utm") {
-		var utmref = new LatLng(latlng.lat(), latlng.lng()).toUTMRef();
-		return [utmref.lngZone + utmref.latZone, utmref.easting.toFixed(0), utmref.northing.toFixed(0)];
+		var utmref = new LatLng(latLng.lat(), latLng.lng()).toUTMRef();
+		tr.appendChild(new Element("td").update(utmref.lngZone + utmref.latZone));
+		tr.appendChild(new Element("td", {align: "right"}).update(utmref.easting.toFixed(0)));
+		tr.appendChild(new Element("td", {align: "right"}).update(utmref.northing.toFixed(0)));
 	} else if (coordFormat == "os") {
-		var ll = new LatLng(latlng.lat(), latlng.lng());
+		var ll = new LatLng(latLng.lat(), latLng.lng());
 		ll.WGS84ToOSGB36();
-		return [ll.toOSRef().toSixFigureString()];
+		tr.appendChild(new Element("td", {align: "right"}).update(ll.toOSRef().toSixFigureString()));
 	} else {
 		var formatter = Prototype.K;
 		if (coordFormat == "d") {
 			formatter = function(deg) {
-				return [deg.toFixed(5) + "&deg;"];
+				tr.appendChild(new Element("td", {align: "right"}).update(deg.toFixed(5) + "\u00b0"));
 			};
 		} else if (coordFormat == "dm") {
 			formatter = function(deg) {
 				var d = parseInt(deg);
 				var min = 60 * (deg - d);
-				return [d.toString() + "&deg;", min.toFixed(3) + "&prime;"];
+				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
+				tr.appendChild(new Element("td", {align: "right"}).update(min.toFixed(3) + "\u2032"));
 			};
 		} else if (coordFormat == "dms") {
 			formatter = function(deg) {
@@ -99,570 +231,644 @@ function formatLatLng(latlng) {
 				var min = 60 * (deg - d);
 				var m = parseInt(min);
 				var sec = 60 * (min - m);
-				return [d.toString() + "&deg;", m.toString() + "&prime;", sec.toFixed(0) + "&Prime;"];
+				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
+				tr.appendChild(new Element("td", {align: "right"}).update(m.toString() + "\u2032"));
+				tr.appendChild(new Element("td", {align: "right"}).update(sec.toFixed(0) + "\u2033"));
 			};
 		}
-		var result = [];
-		result = result.concat(formatter(Math.abs(latlng.lat())));
-		result.push(latlng.lat() < 0.0 ? "S" : "N");
-		result = result.concat(formatter(Math.abs(latlng.lng())));
-		result.push(latlng.lng() < 0.0 ? "W" : "E");
-		return result;
+		formatter(Math.abs(latLng.lat()));
+		tr.appendChild(new Element("td").update(latLng.lat() < 0.0 ? "S" : "N"));
+		formatter(Math.abs(latLng.lng()));
+		tr.appendChild(new Element("td").update(latLng.lng() < 0.0 ? "W" : "E"));
 	}
 }
 
-function isConvex(latlngs) {
-	var prev = latlngs[latlngs.length - 1];
-	var deltas = latlngs.map(function(latlng) {
-		var delta = new GLatLng(latlng.lat() - prev.lat(), latlng.lng() - prev.lng());
-		prev = latlng;
+function isClockwise(pixels) {
+	return ((pixels[1].y - pixels[0].y) * (pixels[2].x - pixels[0].x) - (pixels[2].y - pixels[0].y) * (pixels[1].x - pixels[0].x)) < 0;
+}
+
+function isConvex(pixels) {
+	var prev = pixels[pixels.length - 1];
+	var deltas = pixels.map(function(pixel) {
+		var delta = new GPoint(pixel.x - prev.x, pixel.y - prev.y);
+		prev = pixel;
 		return delta;
 	});
 	var prev = deltas[deltas.length - 1];
-	var cross_products = deltas.map(function(delta) {
-		cross_product = delta.lat() * prev.lng() - delta.lng() * prev.lat();
+	var crossProducts = deltas.map(function(delta) {
+		crossProduct = delta.x * prev.y - delta.y * prev.x;
 		prev = delta;
-		return cross_product;
+		return crossProduct;
 	});
-	return cross_products.max() < 0 || 0 < cross_products.min();
+	return crossProducts.max() < 0 || 0 < crossProducts.min();
 }
 
-var Route = Class.create({
-	initialize: function(league, latlngs, circuit) {
-		this.league = league;
-		this.latlngs = latlngs;
-		this.n = this.latlngs.length;
-		this.circuit = circuit;
-		this.distances = []
-		for (var i = 1; i < this.n; ++i) {
-			this.distances.push(this.latlngs[i].distanceFrom(this.latlngs[i - 1], R));
-		}
-		if (this.circuit) {
-			this.distances.push(this.latlngs[0].distanceFrom(this.latlngs[this.n - 1], R));
-		}
-		this.distance = this.distances.inject(0.0, function(a, x) { return a + x; });
-		this.description = "Invalid";
-		this.multiplier = 0.0;
-		this.glow = false;
-		if (this.league == "cfd") {
-			if (this.circuit) {
-				if (this.n == 2) {
-					this.description = "Parcours en aller-retour";
-					this.multiplier = 1.2;
-				} else if (this.n == 3) {
-					if (this.distances.min() / this.distance >= 0.28) {
-						this.description = "Triangle FAI";
-						this.multiplier = 1.4;
-						this.glow = true;
-					} else {
-						this.description = "Triangle plat";
-						this.multiplier = 1.2;
-					}
-				} else if (this.n == 4) {
-					if (this.distances.min() / this.distance >= 0.15 && isConvex(this.latlngs)) {
-						this.description = "Quadrilatère";
-						this.multiplier = 1.2;
-					}
-				}
-			} else {
-				if (2 <= this.n && this.n <= 4) {
-					this.description = "Distance libre";
-					this.multiplier = 1.0;
-				}
-			}
-		} else if (this.league == "leonardo") {
-			if (this.circuit) {
-				if (this.n == 3) {
-					if (this.distances.min() / this.distance >= 0.28) {
-						this.description = "FAI triangle";
-						this.multiplier = 2.0;
-						this.glow = true;
-					} else {
-						this.description = "Flat triangle";
-						this.multiplier = 1.75;
-					}
-				}
-			} else {
-				if (2 <= this.n && this.n <= 5) {
-					this.description = "Open distance";
-					this.multiplier = 1.5;
-				}
-			}
-		} else if (this.league == "ukxcl-national") {
-			if (declared) {
-				if (this.circuit) {
-					if (this.n == 2) {
-						if (this.distance >= 26600.0) {
-							this.description = "Declared out and return";
-							this.multiplier = 2.5;
-						}
-					} else if (this.n == 3) {
-						if (this.distances.min() / this.distance >= 0.28 && this.distance >= 27400.0) {
-							this.description = "Declared FAI triangle";
-							this.multiplier = 3.75;
-							this.glow = true;
-						}
-					}
-				} else {
-					if (this.distance >= 25800.0) {
-						this.description = "Flight to goal";
-						this.multiplier = 1.25;
-					}
-				}
-			} else {
-				if (this.circuit) {
-					if (this.n == 2) {
-						if (this.distance >= 25000.0) {
-							this.description = "Out and return";
-							this.multiplier = 2.0;
-						} else if (this.distance >= 15000.0) {
-							this.description = "Out and return";
-							this.multiplier = 1.5;
-						}
-					} else if (this.n == 3) {
-						if (this.distances.min() / this.distance >= 0.28) {
-							if (this.distance >= 25000.0) {
-								this.description = "FAI triangle";
-								this.multiplier = 2.7;
-								this.glow = true;
-							} else if (this.distance >= 15000.0) {
-								this.description = "FAI triangle";
-								this.multiplier = 2.0;
-								this.glow = true;
-							}
-						} else {
-							if (this.distance >= 25000.0) {
-								this.description = "Flat triangle";
-								this.multiplier = 2.0;
-							} else if (this.distance >= 15000.0) {
-								this.description = "Flat triangle";
-								this.multiplier = 1.5;
-							}
-						}
-					}
-				} else {
-					if (this.n == 2) {
-						if (this.distance >= 10000.0) {
-							this.description = "Open distance";
-							this.multiplier = 1.0;
-						}
-					} else if (3 <= this.n && this.n <= 5) {
-						if (this.distance >= 15000.0) {
-							this.description = "Turnpoint flight";
-							this.multiplier = 1.0;
-						}
-					}
-				}
-			}
-		} else if (this.league == "xcontest") {
-			if (this.circuit) {
-				if (this.n == 3) {
-					if (this.distances.min() / this.distance >= 0.28) {
-						this.description = "FAI triangle";
-						this.multiplier = 1.4;
-						this.glow = true;
-					} else {
-						this.description = "Flat triangle";
-						this.multiplier = 1.2;
-					}
-				}
-			} else {
-				if (2 <= this.n && this.n <= 5) {
-					this.description = "Free flight";
-					this.multiplier = 1.0;
-				}
-			}
-		}
-	},
-	legToTR: function(i, j) {
-		var fields = [new Element("b").update("TP" + (i + 1).toString() + "&rarr;TP" + (j + 1).toString() + ":"),
-			      (this.distances[i] / 1000.0).toFixed(2) + "km"];
-		if (this.distance != 0.0) {
-			fields.push((100.0 * this.distances[i] / this.distance).toFixed(1) + "%");
-		}
-		return fields.toTR();
-	},
-	toHTML: function() {
-		var table = new Element("table");
-		for (var i = 1; i < this.n; ++i) {
-			table.appendChild(this.legToTR(i - 1, i));
-		}
-		if (this.circuit) {
-			table.appendChild(this.legToTR(this.n - 1, 0));
-		}
-		return table;
-	},
-	turnpointsToHTML: function() {
-		var table = new Element("table");
-		this.latlngs.each(function(latlng, index) {
-			var b = new Element("b").update("TP" + (index + 1).toString() + ":");
-			var a = new Element("a", {id: "action", onclick: "map.setCenter(new GLatLng(" + latlng.lat() + ", " + latlng.lng() + "), 13)", title: "Zoom to TP" + (index + 1).toString()});
-			a.update("[&#8853;]");
-			var tr = [b].concat(formatLatLng(latlng)).concat([a]).toTR();
-			table.appendChild(tr);	
-		});
-		return table;
-	},
-	toPolylines: function() {
-		if (this.circuit) {
-			var latlngs = this.latlngs.clone();
-			latlngs.push(latlngs[0]);
-		} else {
-			var latlngs = this.latlngs;
-		}
-		if (this.glow) {
-			var color = "#ffff00";
-		} else if (this.multiplier == 0.0) {
-			var color = "#ff0000";
-		} else {
-			var color = "#00ff00";
-		}
-		var result = [new GPolyline(latlngs, color, 3, 1.0)];
-		var distance = 1000.0 / R;
-		var d = 2000 * 1024 / (R * Math.pow(2, map.getZoom()));
-		$R(0, latlngs.length - 2).each(function(i) {
-			var bearing = initialBearingTo(latlngs[i + 1], latlngs[i]);
-			var head = [latlngs[i + 1], latLngAt(latlngs[i + 1], bearing - Math.PI / 8.0, d), latLngAt(latlngs[i + 1], bearing, 0.5 * d), latLngAt(latlngs[i + 1], bearing + Math.PI / 8.0, d), latlngs[i + 1]];
-			result.push(new GPolygon(head, color, 1, 1.0, color, 1.0));
-		});
-		return result;
-	}
-});
+function arrowhead(latLngs, length, phi) {
+	var pixels = latLngs.map(function(latLng) { return map.fromLatLngToContainerPixel(latLng); });
+	var delta = new GPoint(pixels[1].x - pixels[0].x, pixels[1].y - pixels[0].y);
+	var theta = Math.atan2(delta.y, delta.x);
+	var result = []
+	result.push(pixels[1]);
+	result.push(new GPoint(pixels[1].x - length * Math.cos(theta + phi), pixels[1].y - length * Math.sin(theta + phi)));
+	result.push(new GPoint(pixels[1].x - 0.5 * length * Math.cos(theta), pixels[1].y - 0.5 * length * Math.sin(theta)));
+	result.push(new GPoint(pixels[1].x - length * Math.cos(theta - phi), pixels[1].y - length * Math.sin(theta - phi)));
+	result.push(pixels[1]);
+	return result.map(function(pixel) { return map.fromContainerPixelToLatLng(pixel); });
+}
 
-function XCGoto() {
-	var init;
+function circle(latLng, r, n) {
+	return $R(0, n).map(function(i) { return latLngAt(latLng, 2.0 * Math.PI * i / n, r / R); });
+}
 
-	if (geocoder)
-	{
-		init = (markers == null);
-		geocoder.getLatLng($F("location"), XCSetCenter);
+function faiSectorHelper(pixel, a, b, c, theta, flip) {
+	var x = (b * b + c * c - a * a) / (2 * c);
+	var y = Math.sqrt(b * b - x * x);
+	return new GPoint(pixel.x + x * Math.cos(theta) - y * Math.sin(theta), pixel.y + flip * (x * Math.sin(theta) + y * Math.cos(theta)));
+}
+
+function faiSector(pixels) {
+	var flip = isClockwise(pixels) ? 1 : -1;
+	var delta = new GPoint(pixels[1].x - pixels[0].x, pixels[1].y - pixels[0].y);
+	var theta = flip * Math.atan2(delta.y, delta.x);
+	var c = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+	var result = [];
+	$R(28, 44, true).each(function(ap) {
+		result.push(faiSectorHelper(pixels[0], c * ap / 28.0, c * (72.0 - ap) / 28.0, c, theta, flip));
+	});
+	$R(28, 44, true).each(function(cp) {
+		result.push(faiSectorHelper(pixels[0], c * (72.0 - cp) / cp, c * 28.0 / cp, c, theta, flip));
+	});
+	$R(28, 44).each(function(_cp) {
+		result.push(faiSectorHelper(pixels[0], c * 28.0 / (72.0 - _cp), c * _cp / (72.0 - _cp), c, theta, flip));
+	});
+	return result.map(function(pixel) { return map.fromContainerPixelToLatLng(pixel); });
+}
+
+function sector(latLng, theta, r, phi, n) {
+	var result = [];
+	result.push(latLng);
+	$R(0, n).each(function(i) {
+		result.push(latLngAt(latLng, theta + (i / n - 0.5) * phi, r / R));
+	});
+	result.push(latLng);
+	return result;
+}
+
+function XCGo() {
+	geocoder.getLatLng($F("location"), function(latLng) {
+		map.setCenter(latLng);
+	});
+}
+
+function XCGoOnEnter(e) {
+	if (window.event) {
+		if (window.event.keyCode == 13) {
+			XCGo();
+		}
+	} else if (e) {
+		if (e.which == 13) {
+			XCGo();
+		}
 	}
 }
 
-function XCResetTurnpoints() {
+function XCLoad() {
+	if (!GBrowserIsCompatible()) {
+		return;
+	}
+	$("location").setValue($F("defaultLocation"));
+	$H(leagues).each(function(leaguePair) {
+		var optgroup = new Element("optgroup", {label: leaguePair[0]});
+		$H(leaguePair[1]).each(function(flightTypePair) {
+			optgroup.appendChild(new Element("option", {label: flightTypePair[1].description, value: flightTypePair[0]}).update(flightTypePair[1].description));
+		});
+		$("flightType").appendChild(optgroup);
+	});
+	$("flightType").setValue($F("defaultFlightType"));
+	var bounds = null;
+	var defaultTurnpoints = $F("defaultTurnpoints") && JSON.parse($F("defaultTurnpoints"));
+	if (defaultTurnpoints) {
+		defaultTurnpoints.each(function(pair, i) {
+			defaultTurnpointLatLngs[i] = new GLatLng(pair[0], pair[1]);
+			if (bounds) {
+				bounds.extend(defaultTurnpointLatLngs[i]);
+			} else {
+				bounds = new GLatLngBounds(defaultTurnpointLatLngs[i], defaultTurnpointLatLngs[i]);
+			}
+		});
+	}
+	var defaultStart = $F("defaultStart") && JSON.parse($F("defaultStart"));
+	if (defaultStart) {
+		defaultStartLatLng = new GLatLng(defaultStart[0], defaultStart[1]);
+		if (bounds) {
+			bounds.extend(defaultStartLatLng);
+		} else {
+			bounds = new GLatLngBounds(defaultStartLatLng, defaultStartLatLng);
+		}
+	}
+	$H(coordFormats).each(function(coordFormatPair) {
+		$("coordFormat").appendChild(new Element("option", {label: coordFormatPair[1], value: coordFormatPair[0]}).update(coordFormatPair[1]));
+	});
+	$("coordFormat").setValue("dms");
+	$H(distanceFormats).each(function(distanceFormatPair) {
+		$("distanceFormat").appendChild(new Element("option", {label: distanceFormatPair[0], value: distanceFormatPair[0]}).update(distanceFormatPair[0]));
+	});
+	$("distanceFormat").setValue("mi");
+	$H(elevationFormats).each(function(elevationFormatPair) {
+		$("elevationFormat").appendChild(new Element("option", {label: elevationFormatPair[0], value: elevationFormatPair[0]}).update(elevationFormatPair[0]));
+	});
+	$("elevationFormat").setValue("m");
+	XCResize();
+	geocoder = new GClientGeocoder();
+	map = new GMap2($("map"));
+	map.setUIToDefault();
+	map.setMapType(G_PHYSICAL_MAP);
+	GEvent.addListener(map, "zoomend", XCUpdateRoute);
+	if (bounds) {
+		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+		XCSetDefaultTurnpoints(false);
+		XCUpdateFlightType();
+	} else {
+		geocoder.getLatLng($F("location"), function(latLng) {
+			map.setCenter(latLng, 10);
+			XCSetDefaultTurnpoints(false);
+			XCUpdateFlightType();
+		});
+	}
+}
+
+function XCHere() {
+	XCSetDefaultTurnpoints(true);
+	turnpointMarkers.each(function(marker, i) {
+		marker.setLatLng(defaultTurnpointLatLngs[i]);
+	});
+	if (startMarker) {
+		startMarker.setLatLng(defaultStartLatLng);
+	}
+	XCUpdateRoute();
+}
+
+function XCSaveDefaultTurnpoints() {
+	turnpointMarkers.each(function(marker, i) {
+		defaultTurnpointLatLngs[i] = marker.getLatLng();
+	});
+	if (startMarker) {
+		defaultStartLatLng = startMarker.getLatLng();
+	}
+}
+
+function XCSetDefaultTurnpoints(replace) {
 	var bounds = map.getBounds();
 	var sw = bounds.getSouthWest();
 	var ne = bounds.getNorthEast();
-	markers.each(function(marker, index) {
-		var lat = sw.lat() + [2, 2, 1, 1, 1.5][index] * (ne.lat() - sw.lat()) / 3;
-		var lng = sw.lng() + [1, 2, 2, 1, 1.5][index] * (ne.lng() - sw.lng()) / 3;
-		marker.setLatLng(new GLatLng(lat, lng));
+	$R(0, 5, true).each(function(i) {
+		if (replace || !defaultTurnpointLatLngs[i]) {
+			var lat = sw.lat() + [2, 2, 1, 1, 1.5][i] * (ne.lat() - sw.lat()) / 3;
+			var lng = sw.lng() + [1, 2, 2, 1, 1.5][i] * (ne.lng() - sw.lng()) / 3;
+			defaultTurnpointLatLngs[i] = new GLatLng(lat, lng);
+		}
 	});
+	if (replace || !defaultStartLatLng) {
+		defaultStartLatLng = bounds.getCenter();
+	}
 }
 
-function XCSetCenter(latlng) {
-	if (map == null) {
-		map = new GMap2($("map"));
-		map.setCenter(latlng || new GLatLng(0, 0), zoom);
-		map.setUIToDefault();
-		map.setMapType(G_PHYSICAL_MAP);
-		GEvent.addListener(map, "zoomend", XCUpdateRoute);
-	} else if (latlng) {
-		map.setCenter(latlng, zoom);
+function XCResize() {
+	$("map").style.width = (document.viewport.getWidth() - 305) + "px";
+	$("map").style.height = (document.viewport.getHeight() - 25) + "px";
+}
+
+function XCReverseRoute() {
+	var latLngs = turnpointMarkers.map(function(marker) { return marker.getLatLng(); });
+	turnpointMarkers.each(function(marker, i) {
+		marker.setLatLng(latLngs[latLngs.length - 1 - i]);
+	});
+	XCUpdateRoute();
+}
+
+function XCRotateRoute(delta) {
+	var latLngs = turnpointMarkers.map(function(marker) { return marker.getLatLng(); });
+	turnpointMarkers.each(function(marker, i) {
+		marker.setLatLng(latLngs[(i + delta + latLngs.length) % latLngs.length]);
+	});
+	XCUpdateRoute();
+}
+
+function XCScore(flight) {
+	flight.circuit = flightType.circuit;
+	flight.color = COLOR.good;
+	flight.description = flightType.description;
+	flight.distance = flight.totalDistance;
+	flight.multiplier = flightType.multiplier;
+	flight.score = flight.totalDistance * flightType.multiplier / 1000.0;
+	flight.circuitCenter = null;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = null;
+	return flight;
+}
+
+function XCScoreOutAndReturn(flight) {
+	flight.circuit = true;
+	flight.color = COLOR.good;
+	flight.description = flightType.description;
+	flight.distance = flight.totalDistance;
+	flight.multiplier = flightType.multiplier;
+	flight.score = flight.totalDistance * flightType.multiplier / 1000.0;
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[1];
+	return flight;
+}
+
+function XCScoreOutAndReturnUKXCL(flight) {
+	flight.circuit = true;
+	flight.distance = flight.totalDistance;
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[1];
+	if (flight.totalDistance < 15000.0) {
+		flight.color = COLOR.invalid;
+		flight.description = "Invalid";
+		flight.multiplier = 0.0;
+	} else if (flight.totalDistance < 25000.0) {
+		flight.color = COLOR.good;
+		flight.description = flightType.description;
+		flight.multiplier = 1.5;
+	} else {
+		flight.color = COLOR.better;
+		flight.description = flightType.description;
+		flight.multiplier = 2.0;
 	}
+	flight.score = flight.totalDistance * flight.multiplier / 1000.0;
+	return flight;
+}
 
-	if (markers == null) {
-		markers = $R(0, 4).map(function(i){
-			var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: "#00ff00"});
-			marker = new GMarker(new GLatLng(0, 0), {draggable: true, icon: icon});
-			GEvent.addListener(marker, "drag", XCUpdateRoute);
+function XCScoreOLC(flight) {
+	var freeFlight = Object.clone(flight);
+	freeFlight.circuit = false;
+	freeFlight.color = COLOR.good;
+	freeFlight.description = flightType.description;
+	freeFlight.distance = freeFlight.totalDistance;
+	freeFlight.multiplier = flightType.multiplier;
+	freeFlight.score = freeFlight.totalDistance * flightType.multiplier / 1000.0;
+	freeFlight.circuitCenter = turnpointMarkers[0];
+	freeFlight.circuitSize = 0.2 * triangleDistance;
+	freeFlight.circuitTarget = turnpointMarkers[4];
+	var triangleDistances = [flight.distances[1], flight.distances[2], flight.latLngs[1].distanceFrom(flight.latLngs[3], R)];
+	var triangleDistance = sum(triangleDistances);
+	var gapDistance = flight.latLngs[4].distanceFrom(flight.latLngs[0], R);
+	if (gapDistance > 0.2 * triangleDistance) {
+		return freeFlight;
+	}
+	freeFlight.faiMarkers = [turnpointMarkers[1], turnpointMarkers[2], turnpointMarkers[3]];
+	var triangleFlight = Object.clone(flight);
+	triangleFlight.circuit = true;
+	triangleFlight.distance = triangleDistance - gapDistance;
+	triangleFlight.faiMarkers = freeFlight.faiMarkers;
+	triangleFlight.circuitCenter = turnpointMarkers[0];
+	triangleFlight.circuitSize = 0.2 * triangleDistance;
+	triangleFlight.circuitTarget = turnpointMarkers[4];
+	if (triangleDistances.min() / triangleDistance < 0.28) {
+		triangleFlight.color = COLOR.better;
+		triangleFlight.description = "Flat triangle";
+		triangleFlight.multiplier = 1.75;
+	} else {
+		triangleFlight.color = COLOR.best;
+		triangleFlight.description = "FAI triangle";
+		triangleFlight.multiplier = 2.0;
+	}
+	triangleFlight.score = triangleFlight.distance * triangleFlight.multiplier / 1000.0;
+	if (freeFlight.score > triangleFlight.score) {
+		return freeFlight;
+	} else {
+		return triangleFlight;
+	}
+}
 
-			return marker;
+function XCScoreQuadrilateralCFD(flight) {
+	flight.circuit = true;
+	flight.distance = flight.totalDistance;
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[3];
+	var pixels = turnpointMarkers.map(function(marker) { return map.fromLatLngToContainerPixel(marker.getLatLng()); });
+	if (flight.distances.min() / flight.totalDistance < 0.15 || !isConvex(pixels)) {
+		flight.color = COLOR.invalid;
+		flight.description = "Invalid";
+		flight.multiplier = 0.0;
+	} else {
+		flight.color = COLOR.good;
+		flight.description = "Quadrilatère";
+		flight.multiplier = 1.2;
+	}
+	flight.score = flight.totalDistance * flight.multiplier / 1000.0;
+	return flight;
+}
+
+function XCScoreTriangle(flight, flat, fai, circuitSize) {
+	flight.circuit = true;
+	flight.distance = flight.totalDistance;
+	flight.faiMarkers = turnpointMarkers;
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = circuitSize;
+	flight.circuitTarget = turnpointMarkers[2];
+	if (flight.distances.min() / flight.totalDistance < 0.28) {
+		flight.color = COLOR.good;
+		flight.description = flat.description;
+		flight.multiplier = flat.multiplier;
+	} else {
+		flight.color = COLOR.best;
+		flight.description = fai.description;
+		flight.multiplier = fai.multiplier;
+	}
+	flight.score = flight.totalDistance * flight.multiplier / 1000.0;
+	return flight;
+}
+
+function XCScoreTriangleCFD(flight) {
+	return XCScoreTriangle(flight, {description: "Triangle plat", multiplier: 1.2}, {description: "Triangle FAI", multiplier: 1.4}, flightType.circuitSize);
+}
+
+function XCScoreTriangleOLC(flight) {
+	return XCScoreTriangle(flight, {description: "Flat triangle", multiplier: 1.75}, {description: "FAI triangle", multiplier: 2.0}, 0.2 * flight.totalDistance);
+}
+
+function XCScoreTriangleUKXCL(flight) {
+	flight.circuit = true;
+	flight.distance = flight.totalDistance;
+	flight.faiMarkers = turnpointMarkers;
+	flight.circuitCenter = startMarker;
+	flight.circuitSize = flightType.circuitSize;
+	flight.circuitTarget = turnpointMarkers[2];
+	if (flight.distances.min() / flight.totalDistance < 0.28) {
+		flight.color = COLOR.good;
+		flight.description = "Flat triangle";
+		flight.multiplier = flight.totalDistance < 25000.0 ? 1.5 : 2.0;
+	} else {
+		flight.color = COLOR.best;
+		flight.description = "FAI triangle";
+		flight.multiplier = flight.totalDistance < 25000.0 ? 2.0 : 2.7;
+	}
+	flight.score = flight.totalDistance * multiplier / 1000.0;
+	return flight;
+}
+
+function XCUpdateMarkerElevation(i) {
+	var marker = i < 0 ? startMarker : turnpointMarkers[i];
+	var latLng = marker.getLatLng();
+	var key = (1200 * latLng.lat() + 0.5).toFixed(0) + ":" + (1200 * latLng.lng() + 0.5).toFixed(0);
+	if (key in elevationCache) {
+		marker.ele = elevationCache[key];
+		marker.rev = ++rev;
+		$("tp" + (i + 1).toString() + "ele").update(formatElevation(marker.ele));
+	} else {
+		new Ajax.Request("get_elevation.php", {
+			onSuccess: function(response) {
+				if (response.responseJSON.rev > marker.rev) {
+					elevationCache[key] = response.responseJSON.ele;
+					marker.ele = response.responseJSON.ele;
+					marker.rev = response.responseJSON.rev;
+					$("tp" + (i + 1).toString() + "ele").update(formatElevation(marker.ele));
+				}
+			},
+			parameters: {
+				lat: latLng.lat(),
+				lng: latLng.lng(),
+				rev: ++rev,
+			},
 		});
-
-		if((turnpts.length > 0) && (turnpts.length <= markers.length))
-		{
-				// Koordinaten setzen
-			for(var tpNr=0; tpNr<turnpts.length; tpNr++)
-			{
-				markers[tpNr].setLatLng(new GLatLng(turnpts[tpNr][0], turnpts[tpNr][1]));
-			}
-		}
-		else
-		{
-				XCResetTurnpoints();
-		}
-
-		XCUpdateFlightType();
-		XCUpdateRoute();
 	}
+}
+
+function XCDragMarker(i) {
+	if ($F("elevation")) {
+		XCUpdateMarkerElevation(i);
+	}
+	XCUpdateRoute();
 }
 
 function XCUpdateFlightType() {
-	var fields = $F("flightType").split(/,/);
-	var color;
-
-	league = fields[0];
-	n = new Number(fields[1]);
-	circuit = (fields[2] == "circuit");
-	declared = (fields[3] == "declared");
-
-	markers.each(function(marker, index)
-	{
-		map.removeOverlay(marker);
+	XCSaveDefaultTurnpoints();
+	turnpointMarkers.each(function(m, i) { map.removeOverlay(m); });
+	if (startMarker) {
+		map.removeOverlay(startMarker);
+	}
+	flightType = null;
+	var key = $F("flightType");
+	$H(leagues).find(function(league) {
+		if (league[1][key]) {
+			flightType = league[1][key];
+		}
 	});
-
-	markers = $R(0, 4).map(function(i)
-	{
-		if((n == 3) && circuit) // triangle
-		{
-			switch(i)
-			{
-				case 0:
-					color = "#ff0000";
-				break;
-				case 1:
-					color = "#00ff00";
-				break;
-				case 2:
-					color = "#0000ff";
-				break;
-				default:
-					color = "#00ff00";
-				break;
-			}
-		}
-		else
-		{
-			color = "#00ff00";
-		}
-
-		// recreate markers because of color change
-		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: color});
-		var marker = new GMarker(markers[i].getLatLng(), {draggable: true, icon: icon});
-		GEvent.addListener(marker, "drag", XCUpdateRoute);
-
+	var markerColors = flightType.markerColors;
+	turnpointMarkers = $R(0, flightType.n, true).map(function(i) {
+		var primaryColor = markerColors ? markerColors[i] : COLOR.marker;
+		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: primaryColor});
+		var marker = new GMarker(defaultTurnpointLatLngs[i], {draggable: true, icon: icon});
+		marker.rev = 0;
+		marker.ele = -9999;
+		GEvent.addListener(marker, "drag", function() { XCDragMarker(i); });
 		return marker;
 	});
+	if (flightType.circuit) {
+		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: "0", primaryColor: COLOR.marker});
+		startMarker = new GMarker(defaultStartLatLng, {draggable: true, icon: icon});
+		startMarker.rev = 0;
+		startMarker.ele = -9999;
+		GEvent.addListener(startMarker, "drag", function() { XCDragMarker(-1); });
+	} else {
+		startMarker = null;
+	}
+	turnpointMarkers.each(function(m, i) { map.addOverlay(m); });
+	if (startMarker) {
+		map.addOverlay(startMarker);
+	}
+	XCUpdateRoute();
+	XCUpdateElevations();
+}
 
-	markers.each(function(marker, index) {
-		if (index < n) {
-			map.addOverlay(marker);
+function XCLegToTR(flight, i, j) {
+	var tr = new Element("tr");
+	var td = new Element("td");
+	td.appendChild(new Element("input", {type: "submit", value: "\u2295", onclick: "XCZoomLeg(" + i.toString() + ", " + j.toString() + ");", title: "Zoom to leg"}));
+	tr.appendChild(td);
+	tr.appendChild(new Element("th").update("TP" + (i + 1).toString() + "\u2192TP" + (j + 1).toString()));
+	tr.appendChild(new Element("td").update(formatDistance(flight.distances[i])));
+	tr.appendChild(new Element("td").update((100.0 * flight.distances[i] / flight.totalDistance).toFixed(1) + "%"));
+	return tr;
+}
+
+function XCMarkerToTR(marker, i) {
+	var tr = new Element("tr");
+	var td = new Element("td");
+	td.appendChild(new Element("input", {type: "submit", value: "\u2295", onclick: "XCZoomTurnpoint(" + i.toString() + ");", title: "Zoom to turnpoint"}));
+	tr.appendChild(td);
+	tr.appendChild(new Element("th").update("TP" + (i + 1).toString()));
+	formatLatLng(marker.getLatLng(), tr);
+	if ($F("elevation")) {
+		tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatElevation(marker.ele)));
+	}
+	return tr;
+}
+
+function XCUpdateElevations() {
+	if ($F("elevation")) {
+		turnpointMarkers.each(function(marker, i) { XCUpdateMarkerElevation(i); });
+		if (startMarker) {
+			XCUpdateMarkerElevation(-1)
 		}
-	});
+	}
+}
+
+function XCToggleElevations() {
+	XCUpdateRoute();
+	XCUpdateElevations();
 }
 
 function XCUpdateRoute() {
-	var latlngs = $R(0, n - 1).map(function(i) { return markers[i].getLatLng(); });
-	var route = new Route(league, latlngs, circuit);
-	$("description").update(route.description);
-	$("distance").update((route.distance / 1000).toFixed(2) + "km");
-	$("multiplier").update(route.multiplier.toFixed(2));
-	$("score").update((route.multiplier * route.distance / 1000).toFixed(2) + " points");
-	$("route").update(route.toHTML());
-	$("turnpoints").update(route.turnpointsToHTML());
+	if (!flightType) {
+		return;
+	}
 
-	var turnpoints_pair = "turnpoints=" + markers.map(function(marker, i) {
+	// flight
+	var latLngs = turnpointMarkers.map(function(m) { return m.getLatLng(); });
+	var distances = $R(0, latLngs.length - 1, true).map(function(i) {
+		return latLngs[i + 1].distanceFrom(latLngs[i]);
+	});
+	if (flightType.circuit) {
+		distances.push(latLngs[0].distanceFrom(latLngs[latLngs.length - 1]));
+	}
+	var score = flightType.score || XCScore;
+	flight = score({distances: distances, latLngs: latLngs, totalDistance: sum(distances)});
+
+	// general
+	$("distance").update(formatDistance(flight.distance));
+	$("description").update(flight.description);
+	$("multiplier").update(flight.multiplier.toFixed(2).replace(/0$/, ""));
+	$("score").update(flight.score.toFixed(2) + " points");
+
+	// overlays
+	var _overlays = overlays;
+	overlays = [];
+	overlays.push(new GPolyline(latLngs, flight.color, 3, 1.0));
+	$R(0, latLngs.length - 1, true).each(function(i) {
+		overlays.push(new GPolygon(arrowhead([latLngs[i], latLngs[i + 1]], 16, Math.PI / 8.0), flight.color, 1, 1.0, flight.color, 1.0));
+	});
+	if (flightType.circuit) {
+		overlays.push(new GPolyline([latLngs[latLngs.length - 1], latLngs[0]], flight.color, 1, 0.75));
+	}
+	if (flightType.circuit && flight.circuit) {
+		overlays.push(new GPolyline([latLngs[latLngs.length - 1], startMarker.getLatLng(), latLngs[0]], flight.color, 3, 1.0));
+		overlays.push(new GPolygon(arrowhead([startMarker.getLatLng(), latLngs[0]], 16, Math.PI / 8.0), flight.color, 1, 1.0, flight.color, 1.0));
+		overlays.push(new GPolygon(arrowhead([latLngs[latLngs.length - 1], startMarker.getLatLng()], 16, Math.PI / 8.0), flight.color, 1, 1.0, flight.color, 1.0));
+	}
+	if (flight.faiMarkers && $F("faiSectors")) {
+		var pixels = flight.faiMarkers.map(function(marker) { return map.fromLatLngToContainerPixel(marker.getLatLng()); });
+		overlays.push(new GPolygon(faiSector([pixels[1], pixels[2], pixels[0]]), COLOR.faiSectors[1], 1, 0.0, COLOR.faiSectors[0], 0.25));
+		overlays.push(new GPolygon(faiSector([pixels[2], pixels[0], pixels[1]]), COLOR.faiSectors[2], 1, 0.0, COLOR.faiSectors[1], 0.25));
+		overlays.push(new GPolygon(faiSector([pixels[0], pixels[1], pixels[2]]), COLOR.faiSectors[0], 1, 0.0, COLOR.faiSectors[2], 0.25));
+	}
+	if (flight.circuitCenter) {
+		if ($F("circuit") == "circle") {
+			overlays.push(new GPolygon(circle(flight.circuitCenter.getLatLng(), flight.circuitSize, 32), COLOR.circuit, 1, 0.0, COLOR.circuit, 0.25));
+		} else if ($F("circuit") == "sector") {
+			var theta = initialBearingTo(flight.circuitCenter.getLatLng(), flight.circuitTarget.getLatLng());
+			overlays.push(new GPolygon(sector(flight.circuitCenter.getLatLng(), theta, flight.circuitSize, Math.PI / 2.0, 32), COLOR.circuit, 1, 0.0, COLOR.circuit, 0.25));
+		}
+	}
+	if (_overlays) {
+		_overlays.each(function(o) { map.removeOverlay(o); });
+	}
+	overlays.each(function(o) { map.addOverlay(o); });
+
+	// route table
+	var route = new Element("table", {id: "route"});
+	$R(0, turnpointMarkers.length - 1, true).each(function(i) {
+		route.appendChild(XCLegToTR(flight, i, i + 1));
+	});
+	if (flightType.circuit) {
+		route.appendChild(XCLegToTR(flight, turnpointMarkers.length - 1, 0));
+	}
+	$("route").replace(route);
+
+	// turnpoints table
+	var turnpoints = new Element("table", {id: "turnpoints"});
+	if (flight.circuitCenter && !turnpointMarkers.include(flight.circuitCenter)) {
+		turnpoints.appendChild(XCMarkerToTR(flight.circuitCenter, -1));
+	}
+	turnpointMarkers.each(function(marker, i) {
+		turnpoints.appendChild(XCMarkerToTR(marker, i));
+	});
+	$("turnpoints").replace(turnpoints);
+
+	// link
+	var pairs = [];
+	pairs.push("location=" + escape($F("location")));
+	pairs.push("flightType=" + $F("flightType"));
+	var turnpoints = [];
+	turnpointMarkers.each(function(marker) {
 		var latLng = marker.getLatLng();
-		return ["TP" + (i + 1), latLng.lat(), latLng.lng(), "0"].join(":");
-	}).join(",");
-
-	var gpx_pairs = [];
-	gpx_pairs.push("format=gpx");
-	gpx_pairs.push("name=" + ($F("location") + "-" + (route.distance / 1000).toFixed(0) + "km-" + route.description).replace(/[^0-9A-Za-z\-]+/g, "-"));
-	gpx_pairs.push(turnpoints_pair);
-	if (route.circuit) {
-		gpx_pairs.push("circuit=true");
+		turnpoints.push("[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
+	});
+	pairs.push("turnpoints=[" + turnpoints.join(",") + "]");
+	if (startMarker) {
+		var latLng = startMarker.getLatLng();
+		pairs.push("start=[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
 	}
-	$("gpx").writeAttribute({href: "download.php?" + gpx_pairs.join("&")});
+	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
-	var bookmark_pairs = [];
-	bookmark_pairs.push("location=" + $F("location"));
-	bookmark_pairs.push("flightType=" + $F("flightType"));
-	bookmark_pairs.push("coordFormat=" + $F("coordFormat"));
-	bookmark_pairs.push(turnpoints_pair);
-	$("bookmark").writeAttribute({href: "index.php?" + bookmark_pairs.join("&")});
-
-	polylines.each(function(polyline) { map.removeOverlay(polyline); });
-	polylines = route.toPolylines();
-	polylines.each(function(polyline) { map.addOverlay(polyline); });
-
-	s = [];
-	if((n == 3) && circuit)
-	{
-		s[0] = new GPolygon(getFaiSector(latlngs[0], latlngs[1], latlngs[2]),
-					"#f33f00", 1, 1, "#0000ff", 0.1);
-		s[1] = new GPolygon(getFaiSector(latlngs[1], latlngs[2], latlngs[0]),
-					"#f33f00", 1, 1, "#ff0000", 0.1);
-		s[2] = new GPolygon(getFaiSector(latlngs[2], latlngs[0], latlngs[1]),
-					"#f33f00", 1, 1, "#00ff00", 0.1);
+	// gpx
+	var turnpoints = []
+	if (flight.circuitCenter && !turnpointMarkers.include(flight.circuitCenter)) {
+		turnpoints.push({
+			name: "TP0",
+			lat: flight.circuitCenter.getLatLng().lat(),
+			lng: flight.circuitCenter.getLatLng().lng(),
+		});
 	}
-	for (var i = 0; i < 3; ++i)
-	{
-		if (i < s.length)
-		{
-			map.addOverlay(s[i]);
-		}
-		if (i < sectors.length)
-		{
-			map.removeOverlay(sectors[i]);
-		}
-	}
-	sectors = s;
-}
-
-/**
-	Get the points of the FAI sector of the triangle latlng1 (A), latlng2 (B), latlng3 (C),
-	a, b are the cathetus and c is the hypotenuse.
-	The problem is broken down for a common side of the FAI triangle. The side (latlng1 - latlng2)
-	is named c. The possible sector is given through a and b.
-	@param latlng1 GLatLng of first edge (A)
-	@param latlng2 GLatLng of second edge (B)
-	@param latlng3 GLatLng of third edge (C) (only for orientation detection)
-	@return Array of GLatLng. The points of the sector.
-*/
-function getFaiSector(latlng1, latlng2, latlng3)
-{
-	var bear;
-	var latlngs = [];
-	var cw;
-	var ap;
-	var bp;
-	var cp;
-	var a;
-	var b;
-	var c = latlng1.distanceFrom(latlng2);
-	var x;
-	var y;
-	var rotX;
-	var rotY;
-
-	// the orientation of the triangle
-	cw = (orient2dTri(latlng1, latlng2, latlng3) < 0);
-
-	if(cw)
-	{
-		bear = (initialBearingTo(latlng1, latlng2) - Math.PI / 2);
-	}
-	else
-	{
-		bear = -(initialBearingTo(latlng1, latlng2) - Math.PI / 2);
-	}
-
-	/* calculate the sectors */
-
-	// case 1: c is minimal, a and b variable
-	cp = 28.0;
-
-	for(ap=28; ap<44; ap++)
-	{
-		bp = 100.0 - ap - cp;
-		a = c * ap / cp;
-		b = c * bp / cp;
-		x = (b*b + c*c - a*a) / (2 * c);
-		y = Math.sqrt(b*b - x*x);
-
-		// rotation
-		rotX = x * Math.cos(bear) - y * Math.sin(bear);
-		rotY = x * Math.sin(bear) + y * Math.cos(bear);
-
-		if(cw)
-		{
-			rotY = -rotY;
-		}
-
-		// translation
-		latlngs.push(latLngAtXY(latlng1, rotX, rotY));
-	}
-
-	// case 2: b is minimal, a and c variable
-	bp = 28.0;
-
-	for(cp=28; cp<44; cp++)
-	{
-		ap = 100.0 - bp - cp;
-		a = c * ap / cp;
-		b = c * bp / cp;
-		x = (b*b + c*c - a*a) / (2 * c);
-		y = Math.sqrt(b*b - x*x);
-
-		// rotation
-		rotX = x * Math.cos(bear) - y * Math.sin(bear);
-		rotY = x * Math.sin(bear) + y * Math.cos(bear);
-
-		if(cw)
-		{
-			rotY = -rotY;
-		}
-
-		// translation
-		latlngs.push(latLngAtXY(latlng1, rotX, rotY));
-	}
-
-	// case 3: a ist minimal, b and c variable
-	ap = 28.0;
-
-	for(cp=44; cp>=28; cp--)
-	{
-		bp = 100.0 - ap - cp;
-		a = c * ap / cp;
-		b = c * bp / cp;
-		x = (b*b + c*c - a*a) / (2 * c);
-		y = Math.sqrt(b*b - x*x);
-
-		// rotation
-		rotX = x * Math.cos(bear) - y * Math.sin(bear);
-		rotY = x * Math.sin(bear) + y * Math.cos(bear);
-
-		if(cw)
-		{
-			rotY = -rotY;
-		}
-
-		// translation
-		latlngs.push(latLngAtXY(latlng1, rotX, rotY));
-	}
-
-	return latlngs;
-}
-
-/**
-	Test the orientation of a triangle.
-	@param latlng1 GLatLng of first edge
-	@param latlng2 GLatLng of second edge
-	@param latlng3 GLatLng of third edge
-	@return >0 for counterclockwise
-					=0 for none (degenerate)
-					<0 for clockwise
-*/
-function orient2dTri(latlng1, latlng2, latlng3)
-{
-	return ((latlng2.lng() - latlng1.lng()) * (latlng3.lat() - latlng1.lat()) -
-				(latlng3.lng() - latlng1.lng()) * (latlng2.lat() - latlng1.lat()));
-}
-
-function XCLoad(turnpoints) {
-	turnpts = turnpoints;
-	XCResize();
-	if (GBrowserIsCompatible()) {
-		geocoder = new GClientGeocoder();
-		XCGoto();
-	}
+	turnpointMarkers.each(function(marker, i) {
+		var latLng = marker.getLatLng();
+		turnpoints.push({
+			name: "TP" + (i + 1).toString(),
+			lat: latLng.lat(),
+			lng: latLng.lng(),
+		});
+	});
+	var route = {
+		circuit: flightType.circuit,
+		description: flight.description,
+		distance: formatDistance(flight.distance),
+		"location": $F("location"),
+		turnpoints: turnpoints,
+	};
+	$("gpx").writeAttribute({href: "download.php?format=gpx&route=" + escape(JSON.stringify(route))});
 }
 
 function XCUnload() {
 	geocoder = null;
 	map = null;
-	markers = null;
-	polylines = [];
+	turnpointMarkers = null;
+	startMarker = null;
+	overlays = null;
 	GUnload();
 }
 
-function XCResize()
-{
-	var viewWidth;
-	var viewHeight;
+function XCZoomLeg(i, j) {
+	var bounds = new GLatLngBounds(turnpointMarkers[i].getLatLng(), turnpointMarkers[i].getLatLng());
+	bounds.extend(turnpointMarkers[j].getLatLng());
+	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+}
 
-	if (typeof window.innerWidth != "undefined") {
-		viewWidth = window.innerWidth;
-		viewHeight = window.innerHeight;
-	} else if (typeof document.documentElement != "undefined" && typeof document.documentElement.clientWidth != "undefined" && document.documentElement.clientWidth != 0) {
-		viewWidth = document.documentElement.clientWidth;
-		viewHeight = document.documentElement.clientHeight;
-	} else {
-		viewWidth = document.getElementsByTagName("body")[0].clientWidth;
-		viewHeight = document.getElementsByTagName("body")[0].clientHeight;
-	}
-	$("map").style.width = (viewWidth - 305) + "px";
-	$("map").style.height = (viewHeight - 25) + "px";
+function XCZoomRoute() {
+	var bounds = new GLatLngBounds(turnpointMarkers[0].getLatLng(), turnpointMarkers[0].getLatLng());
+	turnpointMarkers.each(function(marker) {
+		bounds.extend(marker.getLatLng());
+	});
+	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+}
+
+function XCZoomTurnpoint(i) {
+	var marker = i < 0 ? flight.circuitCenter : turnpointMarkers[i];
+	var bounds = new GLatLngBounds(marker.getLatLng(), marker.getLatLng());
+	map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 }
