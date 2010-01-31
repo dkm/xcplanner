@@ -38,6 +38,7 @@ var defaultStartLatLng = null;
 var turnpointMarkers = [];
 var overlays = null;
 var startMarker = null;
+var rev = 0;
 
 var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
@@ -164,6 +165,11 @@ var coordFormats = {
 	os: "OS grid",
 };
 
+var altitudeFormats = {
+	m: function(m) { return m.toString() + " m"; },
+	feet: function(m) { return (m * 3.2808399).toFixed(0) + " ft"; },
+}
+
 var distanceFormats = {
 	km: function(m) { return (m / 1000.0).toFixed(2) + " km"; },
 	miles: function(m) { return (m / 1609.0).toFixed(2) + " mi"; },
@@ -184,6 +190,10 @@ function latLngAt(latLng, bearing, distance) {
 	var lat = Math.asin(Math.sin(latLng.latRadians()) * Math.cos(distance) + Math.cos(latLng.latRadians()) * Math.sin(distance) * Math.cos(bearing));
 	var lng = latLng.lngRadians() + Math.atan2(Math.sin(bearing) * Math.sin(distance) * Math.cos(latLng.latRadians()), Math.cos(distance) - Math.sin(latLng.latRadians()) * Math.sin(lat));
 	return new GLatLng(180.0 * lat / Math.PI, 180.0 * lng / Math.PI);
+}
+
+function formatAltitude(m) {
+	return m == -9999 ? "" : altitudeFormats[$F("altitudeFormat")](m);
 }
 
 function formatDistance(m) {
@@ -360,6 +370,10 @@ function XCLoad() {
 		$("distanceFormat").appendChild(new Element("option", {label: distanceFormatPair[0], value: distanceFormatPair[0]}).update(distanceFormatPair[0]));
 	});
 	$("distanceFormat").setValue("mi");
+	$H(altitudeFormats).each(function(altitudeFormatPair) {
+		$("altitudeFormat").appendChild(new Element("option", {label: altitudeFormatPair[0], value: altitudeFormatPair[0]}).update(altitudeFormatPair[0]));
+	});
+	$("altitudeFormat").setValue("m");
 	XCResize();
 	geocoder = new GClientGeocoder();
 	map = new GMap2($("map"));
@@ -595,6 +609,32 @@ function XCScoreTriangleUKXCL(flight) {
 	return flight;
 }
 
+function XCUpdateMarkerAltitude(i) {
+	var marker = i < 0 ? startMarker : turnpointMarkers[i];
+	new Ajax.Request('get_elevation.php', {
+		onSuccess: function(response) {
+			if (response.responseJSON.rev > marker.rev) {
+				marker.ele = response.responseJSON.ele;
+				marker.rev = response.responseJSON.rev;
+				$("tp" + (i + 1).toString() + "ele").update(formatAltitude(marker.ele));
+			}
+		},
+		parameters: {
+			lat: marker.getLatLng().lat(),
+			lng: marker.getLatLng().lng(),
+			rev: ++rev,
+		},
+	});
+
+}
+
+function XCDragMarker(i) {
+	if ($F("altitude")) {
+		XCUpdateMarkerAltitude(i);
+	}
+	XCUpdateRoute();
+}
+
 function XCUpdateFlightType() {
 	XCSaveDefaultTurnpoints();
 	turnpointMarkers.each(function(m, i) { map.removeOverlay(m); });
@@ -613,13 +653,17 @@ function XCUpdateFlightType() {
 		var primaryColor = markerColors ? markerColors[i] : COLOR.marker;
 		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: primaryColor});
 		var marker = new GMarker(defaultTurnpointLatLngs[i], {draggable: true, icon: icon});
-		GEvent.addListener(marker, "drag", XCUpdateRoute);
+		marker.rev = 0;
+		marker.ele = -9999;
+		GEvent.addListener(marker, "drag", function() { XCDragMarker(i); });
 		return marker;
 	});
 	if (flightType.circuit) {
 		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: "0", primaryColor: COLOR.marker});
 		startMarker = new GMarker(defaultStartLatLng, {draggable: true, icon: icon});
-		GEvent.addListener(startMarker, "drag", XCUpdateRoute);
+		startMarker.rev = 0;
+		startMarker.ele = -9999;
+		GEvent.addListener(startMarker, "drag", function() { XCDragMarker(-1); });
 	} else {
 		startMarker = null;
 	}
@@ -628,6 +672,7 @@ function XCUpdateFlightType() {
 		map.addOverlay(startMarker);
 	}
 	XCUpdateRoute();
+	XCUpdateAltitudes();
 }
 
 function XCLegToTR(flight, i, j) {
@@ -648,7 +693,24 @@ function XCMarkerToTR(marker, i) {
 	tr.appendChild(td);
 	tr.appendChild(new Element("th").update("TP" + (i + 1).toString()));
 	formatLatLng(marker.getLatLng()).each(function(s) { tr.appendChild(new Element("td").update(s)); });
+	if ($F("altitude")) {
+		tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatAltitude(marker.ele)));
+	}
 	return tr;
+}
+
+function XCUpdateAltitudes() {
+	if ($F("altitude")) {
+		turnpointMarkers.each(function(marker, i) { XCUpdateMarkerAltitude(i); });
+		if (startMarker) {
+			XCUpdateMarkerAltitude(-1)
+		}
+	}
+}
+
+function XCToggleAltitudes() {
+	XCUpdateRoute();
+	XCUpdateAltitudes();
 }
 
 function XCUpdateRoute() {

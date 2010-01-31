@@ -9,6 +9,5 @@ Make reverse and rotate conditional on route type
 Add collaboration feature
 Make it beautiful
 Add remaining UK XC league flight types
-Add turnpoint altitudes from SRTM data
 
 # vim: set spell spelllang=en:
