@@ -39,6 +39,7 @@ var turnpointMarkers = [];
 var overlays = null;
 var startMarker = null;
 var rev = 0;
+var elevationCache = {}
 
 var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
@@ -192,7 +193,7 @@ function latLngAt(latLng, bearing, distance) {
 	return new GLatLng(180.0 * lat / Math.PI, 180.0 * lng / Math.PI);
 }
 
-function formatAltitude(m) {
+function formatElevation(m) {
 	return m == -9999 ? "" : elevationFormats[$F("elevationFormat")](m);
 }
 
@@ -609,28 +610,36 @@ function XCScoreTriangleUKXCL(flight) {
 	return flight;
 }
 
-function XCUpdateMarkerAltitude(i) {
+function XCUpdateMarkerElevation(i) {
 	var marker = i < 0 ? startMarker : turnpointMarkers[i];
-	new Ajax.Request('get_elevation.php', {
-		onSuccess: function(response) {
-			if (response.responseJSON.rev > marker.rev) {
-				marker.ele = response.responseJSON.ele;
-				marker.rev = response.responseJSON.rev;
-				$("tp" + (i + 1).toString() + "ele").update(formatAltitude(marker.ele));
-			}
-		},
-		parameters: {
-			lat: marker.getLatLng().lat(),
-			lng: marker.getLatLng().lng(),
-			rev: ++rev,
-		},
-	});
-
+	var latLng = marker.getLatLng();
+	var key = (1200 * latLng.lat() + 0.5).toFixed(0) + ":" + (1200 * latLng.lng() + 0.5).toFixed(0);
+	if (key in elevationCache) {
+		marker.ele = elevationCache[key];
+		marker.rev = ++rev;
+		$("tp" + (i + 1).toString() + "ele").update(formatElevation(marker.ele));
+	} else {
+		new Ajax.Request("get_elevation.php", {
+			onSuccess: function(response) {
+				if (response.responseJSON.rev > marker.rev) {
+					elevationCache[key] = response.responseJSON.ele;
+					marker.ele = response.responseJSON.ele;
+					marker.rev = response.responseJSON.rev;
+					$("tp" + (i + 1).toString() + "ele").update(formatElevation(marker.ele));
+				}
+			},
+			parameters: {
+				lat: latLng.lat(),
+				lng: latLng.lng(),
+				rev: ++rev,
+			},
+		});
+	}
 }
 
 function XCDragMarker(i) {
 	if ($F("elevation")) {
-		XCUpdateMarkerAltitude(i);
+		XCUpdateMarkerElevation(i);
 	}
 	XCUpdateRoute();
 }
@@ -672,7 +681,7 @@ function XCUpdateFlightType() {
 		map.addOverlay(startMarker);
 	}
 	XCUpdateRoute();
-	XCUpdateAltitudes();
+	XCUpdateElevations();
 }
 
 function XCLegToTR(flight, i, j) {
@@ -694,23 +703,23 @@ function XCMarkerToTR(marker, i) {
 	tr.appendChild(new Element("th").update("TP" + (i + 1).toString()));
 	formatLatLng(marker.getLatLng()).each(function(s) { tr.appendChild(new Element("td").update(s)); });
 	if ($F("elevation")) {
-		tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatAltitude(marker.ele)));
+		tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatElevation(marker.ele)));
 	}
 	return tr;
 }
 
-function XCUpdateAltitudes() {
+function XCUpdateElevations() {
 	if ($F("elevation")) {
-		turnpointMarkers.each(function(marker, i) { XCUpdateMarkerAltitude(i); });
+		turnpointMarkers.each(function(marker, i) { XCUpdateMarkerElevation(i); });
 		if (startMarker) {
-			XCUpdateMarkerAltitude(-1)
+			XCUpdateMarkerElevation(-1)
 		}
 	}
 }
 
-function XCToggleAltitudes() {
+function XCToggleElevations() {
 	XCUpdateRoute();
-	XCUpdateAltitudes();
+	XCUpdateElevations();
 }
 
 function XCUpdateRoute() {
