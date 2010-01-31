@@ -193,7 +193,7 @@ function latLngAt(latLng, bearing, distance) {
 }
 
 function formatAltitude(m) {
-	return altitudeFormats[$F("altitudeFormat")](m);
+	return m == -9999 ? "" : altitudeFormats[$F("altitudeFormat")](m);
 }
 
 function formatDistance(m) {
@@ -647,7 +647,7 @@ function XCUpdateFlightType() {
 		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: (i + 1).toString(), primaryColor: primaryColor});
 		var marker = new GMarker(defaultTurnpointLatLngs[i], {draggable: true, icon: icon});
 		marker.rev = 0;
-		marker.ele = 0;
+		marker.ele = -9999;
 		GEvent.addListener(marker, "drag", function() { XCDragMarker(i); });
 		return marker;
 	});
@@ -655,7 +655,7 @@ function XCUpdateFlightType() {
 		var icon = MapIconMaker.createLabeledMarkerIcon({width: 32, height: 32, label: "0", primaryColor: COLOR.marker});
 		startMarker = new GMarker(defaultStartLatLng, {draggable: true, icon: icon});
 		startMarker.rev = 0;
-		startMarker.ele = 0;
+		startMarker.ele = -9999;
 		GEvent.addListener(startMarker, "drag", function() { XCDragMarker(-1); });
 	} else {
 		startMarker = null;
