@@ -30,8 +30,8 @@ XC Planner accepts a query string which is used to set the initial state.  These
 
 These can be used to set sensible defaults if you want to link to XC planner from your XC league&quot;s website.  For example:
 
-OLC 5-point flight around Interlaken: `http://localhost/xcplanner/?location=Interlaken&flightType=olc5`
-CFD FAI triangle around Chamonix: `http://localhost/xcplanner/?location=Chamonix&flightType=cfd3c`
+* OLC 5-point flight around Interlaken: `http://localhost/xcplanner/?location=Interlaken&flightType=olc5`
+* CFD FAI triangle around Chamonix: `http://localhost/xcplanner/?location=Chamonix&flightType=cfd3c`
 
 
 Advanced Installation
@@ -45,3 +45,5 @@ XC Planner can use [CGIAR-CSI](http://srtm.csi.cgiar.org/) data to determine tur
 			bin/srtm-get -i $i -j $j
 		done
 	done
+
+XC Planner can use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because this is very slow.
