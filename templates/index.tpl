@@ -45,8 +45,8 @@
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
 				</tr>
 				<tr>
-					<td><label for="altitude">Altitudes:</label></td>
-					<td><input id="altitude" type="checkbox" onchange="XCToggleAltitudes();"/></td>
+					<td><label for="elevation">Elevations:</label></td>
+					<td><input id="elevation" type="checkbox" onchange="XCToggleElevations();"/></td>
 				</tr>
 				<tr>
 					<td><label for="circuit">Closed circuit area:</label></td>
@@ -67,8 +67,8 @@
 					<td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
 				<tr>
-					<td><label for="altitudeUnit">Altitude unit:</label></td>
-					<td><select id="altitudeFormat" onchange="XCUpdateRoute();"></select></td>
+					<td><label for="elevationUnit">Elevation unit:</label></td>
+					<td><select id="elevationFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
 			</table>
 			<hr/>
