@@ -41,6 +41,14 @@
 			<b>Preferences:</b>
 			<table>
 				<tr>
+					<td><label for="airspace">XContest airspace:</label></td>
+					<td><input id="airspace" type="checkbox" onchange="XCUpdateAirspace();"/></td>
+				</tr>
+				<tr>
+					<td><label for="corr">XContest SkyWays:</label></td>
+					<td><input id="corr" type="checkbox" onchange="XCUpdateCorr();"/></td>
+				</tr>
+				<tr>
 					<td><label for="faiSectors">FAI triangle areas:</label></td>
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
 				</tr>
@@ -73,9 +81,11 @@
 			</table>
 			<hr/>
 			<p>XC Planner Copyright &copy; 2009, 2010 Tom Payne &lt;<a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>&gt;</p>
+			<p>XContest Airspace and SkyWays data &copy; XContest 2008, 2009</p>
 			<p><a href="http://github.com/twpayne/xcplanner/">http://github.com/twpayne/xcplanner/</a></p>
 			<p>Thanks to:
 				Victor Berchet &middot;
+				Petr Chromec &middot;
 				Alex Graf &middot;
 				Marcus Kroiss &middot;
 				Jonty Lawson &middot;
