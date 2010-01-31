@@ -201,26 +201,29 @@ function formatDistance(m) {
 	return distanceFormats[$F("distanceFormat")](m);
 }
 
-function formatLatLng(latLng) {
+function formatLatLng(latLng, tr) {
 	var coordFormat = $F("coordFormat");
 	if (coordFormat == "utm") {
 		var utmref = new LatLng(latLng.lat(), latLng.lng()).toUTMRef();
-		return [utmref.lngZone + utmref.latZone, utmref.easting.toFixed(0), utmref.northing.toFixed(0)];
+		tr.appendChild(new Element("td").update(utmref.lngZone + utmref.latZone));
+		tr.appendChild(new Element("td", {align: "right"}).update(utmref.easting.toFixed(0)));
+		tr.appendChild(new Element("td", {align: "right"}).update(utmref.northing.toFixed(0)));
 	} else if (coordFormat == "os") {
 		var ll = new LatLng(latLng.lat(), latLng.lng());
 		ll.WGS84ToOSGB36();
-		return [ll.toOSRef().toSixFigureString()];
+		tr.appendChild(new Element("td", {align: "right"}).update(ll.toOSRef().toSixFigureString()));
 	} else {
 		var formatter = Prototype.K;
 		if (coordFormat == "d") {
 			formatter = function(deg) {
-				return [deg.toFixed(5) + "\u00b0"];
+				tr.appendChild(new Element("td", {align: "right"}).update(deg.toFixed(5) + "\u00b0"));
 			};
 		} else if (coordFormat == "dm") {
 			formatter = function(deg) {
 				var d = parseInt(deg);
 				var min = 60 * (deg - d);
-				return [d.toString() + "\u00b0", min.toFixed(3) + "\u2032"];
+				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
+				tr.appendChild(new Element("td", {align: "right"}).update(min.toFixed(3) + "\u2032"));
 			};
 		} else if (coordFormat == "dms") {
 			formatter = function(deg) {
@@ -228,15 +231,15 @@ function formatLatLng(latLng) {
 				var min = 60 * (deg - d);
 				var m = parseInt(min);
 				var sec = 60 * (min - m);
-				return [d.toString() + "\u00b0", m.toString() + "\u2032", sec.toFixed(0) + "\u2033"];
+				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
+				tr.appendChild(new Element("td", {align: "right"}).update(m.toString() + "\u2032"));
+				tr.appendChild(new Element("td", {align: "right"}).update(sec.toFixed(0) + "\u2033"));
 			};
 		}
-		var result = [];
-		result = result.concat(formatter(Math.abs(latLng.lat())));
-		result.push(latLng.lat() < 0.0 ? "S" : "N");
-		result = result.concat(formatter(Math.abs(latLng.lng())));
-		result.push(latLng.lng() < 0.0 ? "W" : "E");
-		return result;
+		formatter(Math.abs(latLng.lat()));
+		tr.appendChild(new Element("td").update(latLng.lat() < 0.0 ? "S" : "N"));
+		formatter(Math.abs(latLng.lng()));
+		tr.appendChild(new Element("td").update(latLng.lng() < 0.0 ? "W" : "E"));
 	}
 }
 
@@ -701,7 +704,7 @@ function XCMarkerToTR(marker, i) {
 	td.appendChild(new Element("input", {type: "submit", value: "\u2295", onclick: "XCZoomTurnpoint(" + i.toString() + ");", title: "Zoom to turnpoint"}));
 	tr.appendChild(td);
 	tr.appendChild(new Element("th").update("TP" + (i + 1).toString()));
-	formatLatLng(marker.getLatLng()).each(function(s) { tr.appendChild(new Element("td").update(s)); });
+	formatLatLng(marker.getLatLng(), tr);
 	if ($F("elevation")) {
 		tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatElevation(marker.ele)));
 	}
