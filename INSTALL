@@ -1,5 +1,0 @@
-1. Edit config.php to set your Google Maps API key and the location of the
-Smarty template library.
-
-2. Make sure that the templates_c directory is writeable by the webserver, e.g.
-	chown apache:apache templates_c
