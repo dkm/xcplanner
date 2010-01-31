@@ -40,6 +40,8 @@ var overlays = null;
 var startMarker = null;
 var rev = 0;
 var elevationCache = {}
+var airspaceTileLayerOverlay = null;
+var corrTileLayerOverlay = null;
 
 var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
@@ -383,6 +385,18 @@ function XCLoad() {
 	map = new GMap2($("map"));
 	map.setUIToDefault();
 	map.setMapType(G_PHYSICAL_MAP);
+	var copyright = new GCopyrightCollection("\u00a9 ");
+	copyright.addCopyright(new GCopyright("XContest", new GLatLngBounds(new GLatLng(-90, -180), new GLatLng(90, 180)), 0, "\u00a9 XContest"));
+	var tileLayer = new GTileLayer(copyright);
+	tileLayer.getTileUrl = function(tile, zoom) { return "http://maps.pgweb.cz/airspace/" + zoom.toString() + "/" + tile.x.toString() + "/" + tile.y.toString(); };
+	tileLayer.isPng = function() { return true; }
+	tileLayer.getOpacity = function() { return 0.75; }
+	airspaceTileLayerOverlay = new GTileLayerOverlay(tileLayer);
+	var tileLayer = new GTileLayer(copyright);
+	tileLayer.getTileUrl = function(tile, zoom) { return "http://maps.pgweb.cz/corr/" + zoom.toString() + "/" + tile.x.toString() + "/" + tile.y.toString(); };
+	tileLayer.isPng = function() { return true; }
+	tileLayer.getOpacity = function() { return 0.75; }
+	corrTileLayerOverlay = new GTileLayerOverlay(tileLayer);
 	GEvent.addListener(map, "zoomend", XCUpdateRoute);
 	if (bounds) {
 		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
@@ -709,6 +723,22 @@ function XCMarkerToTR(marker, i) {
 		tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatElevation(marker.ele)));
 	}
 	return tr;
+}
+
+function XCUpdateAirspace() {
+	if ($F("airspace")) {
+		map.addOverlay(airspaceTileLayerOverlay);
+	} else {
+		map.removeOverlay(airspaceTileLayerOverlay);
+	}
+}
+
+function XCUpdateCorr() {
+	if ($F("corr")) {
+		map.addOverlay(corrTileLayerOverlay);
+	} else {
+		map.removeOverlay(corrTileLayerOverlay);
+	}
 }
 
 function XCUpdateElevations() {
