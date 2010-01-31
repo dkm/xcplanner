@@ -45,6 +45,10 @@
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
 				</tr>
 				<tr>
+					<td><label for="altitude">Altitudes:</label></td>
+					<td><input id="altitude" type="checkbox" onchange="XCToggleAltitudes();"/></td>
+				</tr>
+				<tr>
 					<td><label for="circuit">Closed circuit area:</label></td>
 					<td>
 						<select id="circuit" onchange="XCUpdateRoute();">

@@ -609,7 +609,7 @@ function XCScoreTriangleUKXCL(flight) {
 	return flight;
 }
 
-function XCDragMarker(i) {
+function XCUpdateMarkerAltitude(i) {
 	var marker = i < 0 ? startMarker : turnpointMarkers[i];
 	new Ajax.Request('get_elevation.php', {
 		onSuccess: function(response) {
@@ -625,6 +625,13 @@ function XCDragMarker(i) {
 			rev: ++rev,
 		},
 	});
+
+}
+
+function XCDragMarker(i) {
+	if ($F("altitude")) {
+		XCUpdateMarkerAltitude(i);
+	}
 	XCUpdateRoute();
 }
 
@@ -660,15 +667,12 @@ function XCUpdateFlightType() {
 	} else {
 		startMarker = null;
 	}
-	turnpointMarkers.each(function(m, i) {
-		map.addOverlay(m);
-		XCDragMarker(i);
-	});
+	turnpointMarkers.each(function(m, i) { map.addOverlay(m); });
 	if (startMarker) {
 		map.addOverlay(startMarker);
-		XCDragMarker(-1);
 	}
 	XCUpdateRoute();
+	XCUpdateAltitudes();
 }
 
 function XCLegToTR(flight, i, j) {
@@ -689,8 +693,24 @@ function XCMarkerToTR(marker, i) {
 	tr.appendChild(td);
 	tr.appendChild(new Element("th").update("TP" + (i + 1).toString()));
 	formatLatLng(marker.getLatLng()).each(function(s) { tr.appendChild(new Element("td").update(s)); });
-	tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatAltitude(marker.ele)));
+	if ($F("altitude")) {
+		tr.appendChild(new Element("td", {align: "right", id: "tp" + (i + 1).toString() + "ele"}).update(formatAltitude(marker.ele)));
+	}
 	return tr;
+}
+
+function XCUpdateAltitudes() {
+	if ($F("altitude")) {
+		turnpointMarkers.each(function(marker, i) { XCUpdateMarkerAltitude(i); });
+		if (startMarker) {
+			XCUpdateMarkerAltitude(-1)
+		}
+	}
+}
+
+function XCToggleAltitudes() {
+	XCUpdateRoute();
+	XCUpdateAltitudes();
 }
 
 function XCUpdateRoute() {
