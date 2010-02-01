@@ -415,11 +415,16 @@ function XCHere() {
 	XCSetDefaultTurnpoints(true);
 	turnpointMarkers.each(function(marker, i) {
 		marker.setLatLng(defaultTurnpointLatLngs[i]);
+		marker.ele = -9999;
+		marker.rev = ++rev;
 	});
 	if (startMarker) {
 		startMarker.setLatLng(defaultStartLatLng);
+		startMarker.ele = -9999;
+		startMarker.rev = ++rev;
 	}
 	XCUpdateRoute();
+	XCUpdateElevations();
 }
 
 function XCSaveDefaultTurnpoints() {
@@ -456,16 +461,22 @@ function XCReverseRoute() {
 	var latLngs = turnpointMarkers.map(function(marker) { return marker.getLatLng(); });
 	turnpointMarkers.each(function(marker, i) {
 		marker.setLatLng(latLngs[latLngs.length - 1 - i]);
+		marker.ele = -9999;
+		marker.rev = ++rev;
 	});
 	XCUpdateRoute();
+	XCUpdateElevations();
 }
 
 function XCRotateRoute(delta) {
 	var latLngs = turnpointMarkers.map(function(marker) { return marker.getLatLng(); });
 	turnpointMarkers.each(function(marker, i) {
 		marker.setLatLng(latLngs[(i + delta + latLngs.length) % latLngs.length]);
+		marker.ele = -9999;
+		marker.rev = ++rev;
 	});
 	XCUpdateRoute();
+	XCUpdateElevations();
 }
 
 function XCScore(flight) {
