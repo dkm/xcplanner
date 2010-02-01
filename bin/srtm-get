@@ -69,7 +69,7 @@ def create_tile(basename, zip_filename):
 
 def main(argv):
     parser = OptionParser()
-    parser.add_option('--background)
+    parser.add_option('--background')
     def on_all(option, opt_str, value, parser, *args, **kwargs):
         parser.values.xs = xrange(1, 73)
         parser.values.ys = xrange(1, 25)
