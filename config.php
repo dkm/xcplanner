@@ -7,6 +7,7 @@ $DEFAULT_LOCATION = "Fiesch";
 $DEFAULT_FLIGHT_TYPE = "olc5";
 $DEFAULT_TURNPOINTS = null;
 $DEFAULT_START = null;
+$XCONTEST = in_array($_SERVER["SERVER_NAME"], array("localhost", "paraglidingforum.com", "www.paraglidingform.com", "xcontest.org", "www.xcontest.org"));
 $get_elevation = "get_elevation_srtm";
 
 if (function_exists("date_default_timezone_set"))
