@@ -39,9 +39,10 @@ Advanced Installation
 
 ### Elevation data ###
 
-XC Planner can use [CGIAR-CSI](http://srtm.csi.cgiar.org/) data to determine turnpoint elevations.  The program `bin/srtm-get` can be used to download and prepare this data for use.  It is advisable to download the CGIAR-CSI tiles for the areas you wish to cover. For example, to download the data for the European Alps, use
-	for i in 38 39; do
-		for j in 3 4; do
+XC Planner can use [CGIAR-CSI](http://srtm.csi.cgiar.org/) data to determine turnpoint elevations.  The program `bin/srtm-get` can be used to download and prepare this data for use.  It is advisable to download the CGIAR-CSI tiles for the areas you wish to cover. For example, to download the data for European, use
+
+	for i in 35 42; do
+		for j in 1 5; do
 			bin/srtm-get -i $i -j $j
 		done
 	done
