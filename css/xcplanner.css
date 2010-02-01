@@ -7,11 +7,11 @@ a {
 }
 
 body {
-	overflow:hidden;
-	padding:6px 6px 1px 6px;
-	background-color:#ffffff;
-	font-family:Arial;
-	font-size:12px;
+	overflow: hidden;
+	padding: 6px 6px 1px 6px;
+	background-color: #ffffff;
+	font-family: Arial;
+	font-size: 12px;
 }
 
 #action {
@@ -19,22 +19,22 @@ body {
 }
 
 #left {
-	width:280px;
-	float:left;
+	width: 280px;
+	float: left;
 }
 
 #right {
-	position:relative;
-	width:1px;
-	height:1px;
-	float:left;
+	position: relative;
+	width: 1px;
+	height: 1px;
+	float: left;
 }
 
 #right #map {
-	width:100%;
-	height:100%
+	width: 100%;
+	height: 100%
 }
 
 #map {
-	clear:both;
+	clear: both;
 }

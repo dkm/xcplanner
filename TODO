@@ -1,14 +1,11 @@
-Clicking on Route should fit map to route
 FAI Triangle quality measure (min/0.28)
 Minimum distances for XContest
 Minimum distances for CFD
-Space between degrees and degree sign
-Leading zeros on coordinates
-Refactor league specific code
-Use league specific code to update optgroups
 Automatically generate declarations
 Add reason for invalid
-Add XContest airspace
 Make reverse and rotate conditional on route type
-Add colaboration feature
-Arrow heads should be calculated in Cartesian space
+Add collaboration feature
+Make it beautiful
+Add remaining UK XC league flight types
+
+# vim: set spell spelllang=en:

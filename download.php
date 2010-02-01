@@ -1,58 +1,35 @@
 <?php
 
+$DEBUG = 0;
+
 require_once("config.php");
 require_once("$SMARTY_DIR/Smarty.class.php");
 
-class Turnpoint {
-	var $name;
-	var $lat;
-	var $lon;
-	var $ele;
-
-	function Turnpoint($name, $lat, $lon, $ele) {
-		$this->name = $name;
-		$this->lat = $lat;
-		$this->lon = $lon;
-		$this->ele = $ele;
-	}
-
+if (get_magic_quotes_gpc()) {
+	$route = json_decode(stripslashes($_GET["route"]), true);
+} else {
+	$route = json_decode($_GET["route"], true);
 }
 
-class Route {
-	var $turnpoints;
-
-	function Route($name, $turnpoints, $circuit) {
-		$this->name = $name;
-		$this->turnpoints = $turnpoints;
-		$this->circuit = $circuit;
-	}
-
-}
-
-$name = preg_replace("/[^\\s\\w\\-]+/", "", $_GET["name"]);
-$turnpoints = array();
-if ($_GET["turnpoints"]) {
-	foreach (split(",", $_GET["turnpoints"]) as $turnpoint) {
-		list($turnpoint_name, $lat, $lon, $ele) = split(":", $turnpoint);
-		$turnpoint_name = preg_replace("/[^\\s\\w\\-]+/", "", $turnpoint_name); 
-		$lat = (float) $lat;
-		$lon = (float) $lon;
-		$ele = (int) $ele;
-		if (!$ele) {
-			$ele = get_elevation($lat, $lon);
-		}
-		array_push($turnpoints, new Turnpoint($turnpoint_name, $lat, $lon, $ele));
+$route["turnpoints"] = json_decode($route["turnpoints"], true);
+foreach ($route["turnpoints"] as $key => $turnpoint) {
+	if (!$turnpoint["ele"]) {
+		$route["turnpoints"][$key]["ele"] = $get_elevation($turnpoint["lat"], $turnpoint["lng"]);
 	}
 }
-$circuit = (boolean) $_GET["circuit"];
-$route = new Route($name, $turnpoints, $circuit);
-
+$filename = preg_replace("/[^\\s\\w\\-.]+/", "", implode(" ", array($route["location"], $route["distance"], $route["description"])));
 $smarty = new Smarty;
 $smarty->assign("route", $route);
 if ($_GET["format"] == "gpx") {
-	header("Content-Type: application/octet-stream");
-	header("Content-Disposition: inline; filename=\"$route->name.gpx\"");
-	$smarty->display("download_gpx.tpl");
+	if ($DEBUG) {
+		print "<pre>";
+		print htmlentities($smarty->fetch("download_gpx.tpl"));
+		print "</pre>";
+	} else {
+		header("Content-Type: application/octet-stream");
+		header("Content-Disposition: inline; filename=\"$filename.gpx\"");
+		$smarty->display("download_gpx.tpl");
+	}
 }
 
 ?>

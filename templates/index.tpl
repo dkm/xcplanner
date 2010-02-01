@@ -1,61 +1,104 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
+<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<title>XC Planner</title>
 		<link rel="stylesheet" href="css/xcplanner.css" type="text/css"/>
+		<link rel="icon" href="favicon.ico" type="image/png"/>
 		<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key={$GOOGLE_MAPS_API_KEY}" type="text/javascript"></script>
 		<script src="js/jscoord-1.1.1.js" type="text/javascript"></script>
+		<script src="js/json2.js" type="text/javascript"></script>
 		<script src="js/mapiconmaker.js" type="text/javascript"></script>
-		<script src="http://ajax.googleapis.com/ajax/libs/prototype/1.6.0.3/prototype.js" type="text/javascript"></script>
+		<script src="js/prototype.js" type="text/javascript"></script>
 		<script src="js/xcplanner.js" type="text/javascript"></script>
 	</head>
-	<body onload="{$xcload}" onunload="XCUnload()" onresize="XCResize()" scroll="no">
+	<body onload="XCLoad()" onunload="XCUnload()" onresize="XCResize()" scroll="no">
 		<div id="left">
-			<p>
-				<span id="distance" style="font-size: 36px;">0.0km</span><br/>
-				<span id="description">Open distance</span> (&times;<span id="multiplier">1.0</span>)<br/>
-				<span id="score" style="font-size: 24px;">0.0 points</span>
+			<span id="distance" style="font-size: 36px;">0.0 km</span><br/>
+			<span id="description">Open distance</span> (&times;<span id="multiplier">1.0</span>)<br/>
+			<span id="score" style="font-size: 24px;">0.0 points</span><br/>
+			<hr/>
+			<input id="location" type="text" onkeypress="XCGoOnEnter(event);"/>
+			<input type="submit" onclick="XCGo();" value="Go" title="Center the map on this location"/>
+			<input type="submit" onclick="XCHere();" value="Reset" title="Place the turnpoints on the map" /><br/>
+			<hr/>
+			<select name="flightType" id="flightType" onchange="XCUpdateFlightType();"></select><br/>
+			<hr/>
+			<b>Route:</b>
+			<input type="submit" onclick="XCZoomRoute();" value="&#8853;" title="Show the whole route"/>
+			<input type="submit" onclick="XCRotateRoute(1);" value="&#8631;" title="Rotate clockwise"/>
+			<input type="submit" onclick="XCReverseRoute();" value="&#8644;" title="Reverse"/>
+			<input type="submit" onclick="XCRotateRoute(-1);" value="&#8630;" title="Rotate anti-clockwise"/>
+			<table id="route"></table>
+			<hr/>
+			<b>Turnpoints:</b>
+			<table id="turnpoints"></table>
+			<hr/>
+			<b>Save:</b>
+			<a id="link">link</a>
+			<a id="gpx">gpx</a>
+			<hr/>
+			<b>Preferences:</b>
+			<table>
+{if $XCONTEST}
+				<tr>
+					<td><label for="airspace">XContest airspace:</label></td>
+					<td><input id="airspace" type="checkbox" onchange="XCUpdateAirspace();"/></td>
+				</tr>
+				<tr>
+					<td><label for="corr">XContest SkyWays:</label></td>
+					<td><input id="corr" type="checkbox" onchange="XCUpdateCorr();"/></td>
+				</tr>
+{/if}
+				<tr>
+					<td><label for="faiSectors">FAI triangle areas:</label></td>
+					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
+				</tr>
+				<tr>
+					<td><label for="elevation">Elevations:</label></td>
+					<td><input id="elevation" type="checkbox" onchange="XCToggleElevations();"/></td>
+				</tr>
+				<tr>
+					<td><label for="circuit">Closed circuit area:</label></td>
+					<td>
+						<select id="circuit" onchange="XCUpdateRoute();">
+							<option label="none" value="none">None</option>
+							<option label="sector" value="sector" selected="yes">Sector</option>
+							<option label="circle" value="circle">Circle</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td><label for="coordFormat">Coordinate format:</label></td>
+					<td><select id="coordFormat" onchange="XCUpdateRoute();"></select></td>
+				</tr>
+				<tr>
+					<td><label for="distanceUnit">Distance unit:</label></td>
+					<td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td>
+				</tr>
+				<tr>
+					<td><label for="elevationUnit">Elevation unit:</label></td>
+					<td><select id="elevationFormat" onchange="XCUpdateRoute();"></select></td>
+				</tr>
+			</table>
+			<hr/>
+			<p>XC Planner Copyright &copy; 2009, 2010 Tom Payne &lt;<a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>&gt;</p>
+{if $XCONTEST}
+			<p>XContest Airspace and SkyWays data &copy; XContest 2008, 2009</p>
+{/if}
+			<p><a href="http://github.com/twpayne/xcplanner/">http://github.com/twpayne/xcplanner/</a></p>
+			<p>Thanks to:
+				Victor Berchet &middot;
+				Petr Chromec &middot;
+				Alex Graf &middot;
+				Marcus Kroiss &middot;
+				Jonty Lawson &middot;
+				Marc Poulhies
 			</p>
-			<p>
-				<b>Route:</b>
-				<a id="action" onclick="XCRotateRoute(1); XCUpdateRoute();" title="Rotate route forward">[&#8631;]</a> &middot;
-				<a id="action" onclick="XCReverseRoute(); XCUpdateRoute();" title="Reverse route">[&#8644;]</a> &middot;
-				<a id="action" onclick="XCRotateRoute(-1); XCUpdateRoute();" title="Rotate route backward">[&#8630;]</a><br/>
-				<span id="route"></span>
-			</p>
-			<p>
-				<b>Turnpoints:</b>
-				<a href="#" id="gpx" title="Download GPX file of route and turnpoints">[&darr;gpx]</a> &middot;
-				<a href="#" id="bookmark" title="Link to this route">[&#10025;]</a>
-				<span id="turnpoints"></span><br/>
-				{
-					html_options name=coordFormat id="coordFormat"
-					onchange="XCUpdateRoute();"
-					options=$coordFormats selected=$selCoordFormat
-				}
-			</p>
-		
-			<form action="#" onsubmit="return false;">
-				<input id="location" type="text" value="{$location}"/>
-				<input value="Go!" type="submit" onclick="XCGoto();"/><br/>
-				{
-					html_options name=flightType id="flightType"
-					onchange="XCUpdateFlightType(); XCUpdateRoute();"
-					options=$flightTypes selected=$selFligthType
-				}
-				<br/>
-				<input value="Put turnpoints here" type="submit" onclick="XCResetTurnpoints(); XCUpdateRoute();" />
-			</form>
-			<p>
-				<span>Internet Explorer not supported, <a href="http://www.mozilla.com/">Download Firefox</a> instead!</span>
-			</p>
-			<p>
-				<span>Copyright &copy; Tom Payne, <a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>, 2009</span>
-			</p>
-			<p>
-				<span>Source code is GPL-3 <a href="http://github.com/twpayne/xcplanner">here</a>. Thanks to Alex Graf, Marc Poulhies, Jonty Lawson, Victor Berchet and others for code contributions.</span>
-			</p>
+			<input id="defaultLocation" type="hidden" value="{$location|escape}"/>
+			<input id="defaultFlightType" type="hidden" value="{$flightType|escape}"/>
+			<input id="defaultTurnpoints" type="hidden" value="{$turnpoints|escape}"/>
+			<input id="defaultStart" type="hidden" value="{$start|escape}"/>
 		</div>
 		<div id="right">
 			<div id="map"></div>
