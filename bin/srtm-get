@@ -16,12 +16,7 @@ SRTM_DIR = 'srtm'
 URL = 'ftp://xftp.jrc.it/pub/srtmV4/arcasci/'
 
 
-def main(argv):
-    parser = OptionParser()
-    parser.add_option('-i', type=int)
-    parser.add_option('-j', type=int)
-    options, args = parser.parse_args(argv[1:])
-    basename = 'srtm_%02d_%02d' % (options.i, options.j)
+def download_zip(basename):
     zip_filename = os.path.join(SRTM_DIR, 'zip', basename + '.zip')
     if not os.path.exists(zip_filename):
         sys.stderr.write('Downloading %s: ' % zip_filename)
@@ -39,6 +34,10 @@ def main(argv):
         os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, zip_filename)
         sys.stderr.write('\n')
+    return zip_filename
+
+
+def create_tile(basename, zip_filename):
     tile_filename = os.path.join(SRTM_DIR, 'tile', basename + '.tile')
     if not os.path.exists(tile_filename):
         sys.stderr.write('Creating %s: ' % tile_filename)
@@ -65,6 +64,16 @@ def main(argv):
         os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, tile_filename)
         sys.stderr.write('\n')
+    return tile_filename
+
+
+def main(argv):
+    parser = OptionParser()
+    parser.add_option('-i', type=int)
+    parser.add_option('-j', type=int)
+    options, args = parser.parse_args(argv[1:])
+    basename = 'srtm_%02d_%02d' % (options.i, options.j)
+    create_tile(basename, download_zip(basename))
 
 
 if __name__ == '__main__':
