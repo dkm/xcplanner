@@ -25,7 +25,7 @@ def download_zip(basename):
             url = urlopen(URL + basename + '.zip')
             buffer = url.read(65536)
             while buffer:
-                sys.stderr.write('.')
+                sys.stderr.write('d')
                 tmp_file.write(buffer)
                 buffer = url.read(65536)
         except HTTPError:
@@ -59,7 +59,7 @@ def create_tile(basename, zip_filename):
             NODATA_value = int(re.match(r'NODATA_value\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
             for i in xrange(0, nrows):
                 if i % 100 == 99:
-                    sys.stderr.write('.')
+                    sys.stderr.write('c')
                 tmp_file.write(pack('!%dh' % ncols, *map(int, asc_file.readline().split())))
         os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, tile_filename)
@@ -84,10 +84,19 @@ def main(argv):
         parser.values.ys = xrange(value, value + 1)
     parser.add_option('-y', action='callback', type=int, callback=on_y)
     options, args = parser.parse_args(argv[1:])
+    pids = []
     for x in options.xs:
         for y in options.ys:
             basename = 'srtm_%02d_%02d' % (x, y)
-            create_tile(basename, download_zip(basename))
+            zip_filename = download_zip(basename)
+            pid = os.fork()
+            if pid == 0:
+                create_tile(basename, zip_filename)
+                sys.exit(0)
+            else:
+                pids.append(pid)
+    for pid in pids:
+        os.waitpid(pid, 0)
 
 
 if __name__ == '__main__':
