@@ -69,6 +69,7 @@ def create_tile(basename, zip_filename):
 
 def main(argv):
     parser = OptionParser()
+    parser.add_option('--background)
     def on_all(option, opt_str, value, parser, *args, **kwargs):
         parser.values.xs = xrange(1, 73)
         parser.values.ys = xrange(1, 25)
@@ -89,12 +90,15 @@ def main(argv):
         for y in options.ys:
             basename = 'srtm_%02d_%02d' % (x, y)
             zip_filename = download_zip(basename)
-            pid = os.fork()
-            if pid == 0:
-                create_tile(basename, zip_filename)
-                sys.exit(0)
+            if options.background:
+                pid = os.fork()
+                if pid == 0:
+                    create_tile(basename, zip_filename)
+                    sys.exit(0)
+                else:
+                    pids.append(pid)
             else:
-                pids.append(pid)
+                create_tile(basename, zip_filename)
     for pid in pids:
         os.waitpid(pid, 0)
 
