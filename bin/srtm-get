@@ -8,7 +8,7 @@ from struct import pack
 import sys
 from tempfile import NamedTemporaryFile
 from urllib2 import HTTPError, urlopen
-from zipfile import ZipFile
+from zipfile import BadZipfile, ZipFile
 
 
 SRTM_DIR = 'srtm'
@@ -43,24 +43,27 @@ def create_tile(basename, zip_filename):
         sys.stderr.write('Creating %s: ' % tile_filename)
         tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tile')
         if os.path.getsize(zip_filename):
-            zipfile = ZipFile(zip_filename)
-            if hasattr(zipfile, 'open'):
-                asc_file = zipfile.open(basename + '.asc')
-            else:
-                from cStringIO import StringIO
-                asc_file = StringIO(zipfile.read(basename + '.asc'))
-            ncols = int(re.match(r'ncols\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
-            assert ncols == 6000
-            nrows = int(re.match(r'nrows\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
-            assert nrows == 6000
-            xllcorner = int(re.match(r'xllcorner\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
-            yllcorner = float(re.match(r'yllcorner\s+(-?\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
-            cellsize = float(re.match(r'cellsize\s+(\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
-            NODATA_value = int(re.match(r'NODATA_value\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
-            for i in xrange(0, nrows):
-                if i % 100 == 99:
-                    sys.stderr.write('c')
-                tmp_file.write(pack('!%dh' % ncols, *map(int, asc_file.readline().split())))
+            try:
+                zipfile = ZipFile(zip_filename)
+                if hasattr(zipfile, 'open'):
+                    asc_file = zipfile.open(basename + '.asc')
+                else:
+                    from cStringIO import StringIO
+                    asc_file = StringIO(zipfile.read(basename + '.asc'))
+                ncols = int(re.match(r'ncols\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
+                assert ncols == 6000
+                nrows = int(re.match(r'nrows\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
+                assert nrows == 6000
+                xllcorner = int(re.match(r'xllcorner\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
+                yllcorner = float(re.match(r'yllcorner\s+(-?\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
+                cellsize = float(re.match(r'cellsize\s+(\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
+                NODATA_value = int(re.match(r'NODATA_value\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
+                for i in xrange(0, nrows):
+                    if i % 100 == 99:
+                        sys.stderr.write('c')
+                    tmp_file.write(pack('!%dh' % ncols, *map(int, asc_file.readline().split())))
+            except BadZipfile:
+                sys.stderr.write('corrupt')
         os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, tile_filename)
         sys.stderr.write('\n')
