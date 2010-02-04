@@ -13,7 +13,7 @@ Basic Installation
 
 3. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions. The RedHat package is called `php-Smarty` and the Debian package is called `smarty`.
 
-4. Make sure that the templates_c directory is writeable by the webserver, e.g. `chown apache:apache templates_c`.
+4. Make sure that the `templates_c` directory is writeable by the webserver, e.g. `chown apache:apache templates_c`.
 
 5. Point your web browser at `http://localhost/xcplanner/`.
 
