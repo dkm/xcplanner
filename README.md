@@ -47,4 +47,11 @@ To download the the data for the entire world, run
 
 	bin/srtm-get --all
 
+XC Planner will, by default, use an simple compressed format for the elevation data.  Individual rows of elevation data are compressed separately which gives a disk space saving of approximately 70% over uncompressed data at the expense of having to uncompress one row (12000 bytes) each time an elevation datum is requested.  For popular areas, you may wish to store uncompressed tiles which are larger (72MB per tile) but are much faster to access.
+
+The recommended configuration is to use compressed tiles for all areas except the European Alps.  This can be achieved with the two commands:
+
+	bin/srtm-get --all
+	bin/srtm-get --european-alps --tile
+
 XC Planner can use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because this is very slow.
