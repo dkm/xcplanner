@@ -21,6 +21,9 @@ from zlib import compress
 SRTM_DIR = 'srtm'
 #URL = 'http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/'
 URL = 'ftp://xftp.jrc.it/pub/srtmV4/arcasci/'
+NROWS = 6000
+NCOLS = 6000
+NODATA_VALUE = -9999
 
 
 try:
@@ -51,24 +54,29 @@ def download_zip(zip_filename, basename):
     sys.stderr.write('\n')
 
 
-def create_tile(tile_filename, basename, zip_filename):
-    sys.stderr.write('Creating %s: ' % tile_filename)
-    tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tile')
+def rows(zip_filename, basename):
     if os.path.getsize(zip_filename):
         asc_file = StringIO(ZipFile(zip_filename).read(basename + '.asc'))
         ncols = int(re.match(r'ncols\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
-        assert ncols == 6000
+        assert ncols == NCOLS
         nrows = int(re.match(r'nrows\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
-        assert nrows == 6000
+        assert nrows == NROWS
         xllcorner = int(re.match(r'xllcorner\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
         yllcorner = float(re.match(r'yllcorner\s+(-?\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
         cellsize = float(re.match(r'cellsize\s+(\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
         NODATA_value = int(re.match(r'NODATA_value\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
-        assert NODATA_value == -9999
+        assert NODATA_value == NODATA_VALUE
         for i in xrange(0, nrows):
-            if i % 100 == 99:
-                sys.stderr.write('c')
-            tmp_file.write(pack('!%dh' % ncols, *map(int, asc_file.readline().split())))
+            yield map(int, asc_file.readline().split())
+
+
+def create_tile(tile_filename, basename, zip_filename):
+    sys.stderr.write('Creating %s: ' % tile_filename)
+    tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tile')
+    for i, row in enumerate(rows(zip_filename, basename)):
+        if i % 100 == 99:
+            sys.stderr.write('t')
+        tmp_file.write(pack('!%dh' % NCOLS, *row))
     os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
     os.link(tmp_file.name, tile_filename)
     sys.stderr.write('\n')
@@ -78,29 +86,19 @@ def create_tilez(tilez_filename, basename, zip_filename):
     sys.stderr.write('Creating %s: ' % tilez_filename)
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tilez')
     if os.path.getsize(zip_filename):
-        asc_file = StringIO(ZipFile(zip_filename).read(basename + '.asc'))
-        ncols = int(re.match(r'ncols\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
-        assert ncols == 6000
-        nrows = int(re.match(r'nrows\s+(\d+)\Z', asc_file.readline().rstrip()).group(1))
-        assert nrows == 6000
-        xllcorner = int(re.match(r'xllcorner\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
-        yllcorner = float(re.match(r'yllcorner\s+(-?\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
-        cellsize = float(re.match(r'cellsize\s+(\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
-        NODATA_value = int(re.match(r'NODATA_value\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
-        assert NODATA_value == -9999
-        offset = calcsize('!%di' % nrows)
+        offset = calcsize('!%di' % NROWS)
         offsets = []
         tmp_file.write('\0' * offset)
-        for i in xrange(0, nrows):
+        for i, row in enumerate(rows(zip_filename, basename)):
             if i % 100 == 99:
-                sys.stderr.write('c')
-            row = map(int, asc_file.readline().split())
-            if all(cell == -9999 for cell in row):
+                sys.stderr.write('z')
+            if all(cell == NODATA_VALUE for cell in row):
                 offsets.append(-1)
             else:
                 offsets.append(offset)
-                compressed_row = compress(pack('!%dh' % ncols, *row))
+                compressed_row = compress(pack('!%dh' % NCOLS, *row))
                 tmp_file.write(pack('!i', len(compressed_row)))
+                assert len(compressed_row) + calcsize('!i') <= 16384
                 offset += calcsize('!i')
                 tmp_file.write(compressed_row)
                 offset += len(compressed_row)
@@ -108,7 +106,7 @@ def create_tilez(tilez_filename, basename, zip_filename):
                     tmp_file.write('\0' * (4 - offset % 4))
                     offset += 4 - offset % 4
         tmp_file.seek(0)
-        tmp_file.write(pack('!%di' % nrows, *offsets))
+        tmp_file.write(pack('!%di' % NROWS, *offsets))
     os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
     os.link(tmp_file.name, tilez_filename)
     sys.stderr.write('\n')
