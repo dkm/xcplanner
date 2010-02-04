@@ -57,6 +57,7 @@ def create_tile(basename, zip_filename):
             yllcorner = float(re.match(r'yllcorner\s+(-?\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
             cellsize = float(re.match(r'cellsize\s+(\d+(?:\.\d*)?)\Z', asc_file.readline().rstrip()).group(1))
             NODATA_value = int(re.match(r'NODATA_value\s+(-?\d+)\Z', asc_file.readline().rstrip()).group(1))
+            assert NODATA_value == -9999
             for i in xrange(0, nrows):
                 if i % 100 == 99:
                     sys.stderr.write('c')
