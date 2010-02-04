@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-# FIXME handle BadZipfile exceptions
-
 from optparse import OptionParser
 import os.path
 import re
@@ -14,7 +12,7 @@ from struct import calcsize, pack
 import sys
 from tempfile import NamedTemporaryFile
 from urllib2 import HTTPError, urlopen
-from zipfile import ZipFile
+from zipfile import BadZipfile, ZipFile
 from zlib import compress
 
 
@@ -73,43 +71,49 @@ def rows(zip_filename, basename):
 def create_tile(tile_filename, basename, zip_filename):
     sys.stderr.write('Creating %s: ' % tile_filename)
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tile')
-    for i, row in enumerate(rows(zip_filename, basename)):
-        if i % 100 == 99:
-            sys.stderr.write('t')
-        tmp_file.write(pack('!%dh' % NCOLS, *row))
-    os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-    os.link(tmp_file.name, tile_filename)
-    sys.stderr.write('\n')
+    try:
+        for i, row in enumerate(rows(zip_filename, basename)):
+            if i % 100 == 99:
+                sys.stderr.write('t')
+            tmp_file.write(pack('!%dh' % NCOLS, *row))
+        os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+        os.link(tmp_file.name, tile_filename)
+        sys.stderr.write('\n')
+    except BadZipfile:
+        sys.stderr.write('BadZipfile\n')
 
 
 def create_tilez(tilez_filename, basename, zip_filename):
     sys.stderr.write('Creating %s: ' % tilez_filename)
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tilez')
-    if os.path.getsize(zip_filename):
-        offset = calcsize('!%di' % NROWS)
-        offsets = []
-        tmp_file.write('\0' * offset)
-        for i, row in enumerate(rows(zip_filename, basename)):
-            if i % 100 == 99:
-                sys.stderr.write('z')
-            if all(cell == NODATA_VALUE for cell in row):
-                offsets.append(-1)
-            else:
-                offsets.append(offset)
-                compressed_row = compress(pack('!%dh' % NCOLS, *row))
-                tmp_file.write(pack('!i', len(compressed_row)))
-                assert len(compressed_row) + calcsize('!i') <= 16384
-                offset += calcsize('!i')
-                tmp_file.write(compressed_row)
-                offset += len(compressed_row)
-                if offset % 4:
-                    tmp_file.write('\0' * (4 - offset % 4))
-                    offset += 4 - offset % 4
-        tmp_file.seek(0)
-        tmp_file.write(pack('!%di' % NROWS, *offsets))
-    os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-    os.link(tmp_file.name, tilez_filename)
-    sys.stderr.write('\n')
+    try:
+        if os.path.getsize(zip_filename):
+            offset = calcsize('!%di' % NROWS)
+            offsets = []
+            tmp_file.write('\0' * offset)
+            for i, row in enumerate(rows(zip_filename, basename)):
+                if i % 100 == 99:
+                    sys.stderr.write('z')
+                if all(cell == NODATA_VALUE for cell in row):
+                    offsets.append(-1)
+                else:
+                    offsets.append(offset)
+                    compressed_row = compress(pack('!%dh' % NCOLS, *row))
+                    tmp_file.write(pack('!i', len(compressed_row)))
+                    assert len(compressed_row) + calcsize('!i') <= 16384
+                    offset += calcsize('!i')
+                    tmp_file.write(compressed_row)
+                    offset += len(compressed_row)
+                    if offset % 4:
+                        tmp_file.write('\0' * (4 - offset % 4))
+                        offset += 4 - offset % 4
+            tmp_file.seek(0)
+            tmp_file.write(pack('!%di' % NROWS, *offsets))
+        os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+        os.link(tmp_file.name, tilez_filename)
+        sys.stderr.write('\n')
+    except BadZipfile:
+        sys.stderr.write('BadZipfile\n')
 
 
 def main(argv):
