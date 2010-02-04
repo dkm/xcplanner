@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# FIXME handle BadZipfile exceptions
+
 from optparse import OptionParser
 import os.path
 import re
