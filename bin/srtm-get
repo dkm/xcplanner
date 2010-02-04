@@ -125,8 +125,8 @@ def main(argv):
         parser.values.ys = xrange(1, 6)
     parser.add_option('--europe', action='callback', callback=on_europe)
     def on_european_alps(option, opt_str, value, parser, *args, **kwargs):
-        parser.values.xs = xrange(38, 39)
-        parser.values.ys = xrange(3, 4)
+        parser.values.xs = xrange(38, 40)
+        parser.values.ys = xrange(3, 5)
     parser.add_option('--european-alps', action='callback', callback=on_european_alps)
     def on_x(option, opt_str, value, parser, *args, **kwargs):
         parser.values.xs = xrange(value, value + 1)
