@@ -55,3 +55,7 @@ The recommended configuration is to use compressed tiles for all areas except th
 	bin/srtm-get --european-alps --tile
 
 XC Planner can use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because this is very slow.
+
+### XContest airspace and SkyWays ###
+
+[XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detectes that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&quot;s airspace data availble on your site!  XContest&quot;s webservers will not serve this data to unauthorized sites. To request permission to use the XContest data contact info@xcontest.org.
