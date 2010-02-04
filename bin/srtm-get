@@ -33,25 +33,22 @@ except NameError:
         return True
 
 
-def download_zip(basename):
-    zip_filename = os.path.join(SRTM_DIR, 'zip', basename + '.zip')
-    if not os.path.exists(zip_filename):
-        sys.stderr.write('Downloading %s: ' % zip_filename)
-        tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.zip')
-        try:
-            url = urlopen(URL + basename + '.zip')
+def download_zip(zip_filename, basename):
+    sys.stderr.write('Downloading %s: ' % zip_filename)
+    tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.zip')
+    try:
+        url = urlopen(URL + basename + '.zip')
+        buffer = url.read(65536)
+        while buffer:
+            sys.stderr.write('d')
+            tmp_file.write(buffer)
             buffer = url.read(65536)
-            while buffer:
-                sys.stderr.write('d')
-                tmp_file.write(buffer)
-                buffer = url.read(65536)
-        except HTTPError:
-            if sys.exc_info()[1].code != 404:
-                raise
-        os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-        os.link(tmp_file.name, zip_filename)
-        sys.stderr.write('\n')
-    return zip_filename
+    except HTTPError:
+        if sys.exc_info()[1].code != 404:
+            raise
+    os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    os.link(tmp_file.name, zip_filename)
+    sys.stderr.write('\n')
 
 
 def create_tile(tile_filename, basename, zip_filename):
