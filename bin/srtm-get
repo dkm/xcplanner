@@ -20,6 +20,16 @@ SRTM_DIR = 'srtm'
 URL = 'ftp://xftp.jrc.it/pub/srtmV4/arcasci/'
 
 
+try:
+    all
+except NameError:
+    def all(iterable):
+        for i in iterable:
+            if not i:
+                return False
+        return True
+
+
 def download_zip(basename):
     zip_filename = os.path.join(SRTM_DIR, 'zip', basename + '.zip')
     if not os.path.exists(zip_filename):
