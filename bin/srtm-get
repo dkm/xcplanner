@@ -17,8 +17,11 @@ from zlib import compress
 
 
 SRTM_DIR = 'srtm'
-#URL = 'http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/'
-URL = 'ftp://xftp.jrc.it/pub/srtmV4/arcasci/'
+URLS = {
+    'cgiar': 'http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/',
+    'cgiar/ftp': 'ftp://srtm.csi.cgiar.org/SRTM_v41/SRTM_Data_ArcASCII/',
+    'jrc': 'ftp://xftp.jrc.it/pub/srtmV4/arcasci/',
+    }
 NROWS = 6000
 NCOLS = 6000
 NODATA_VALUE = -9999
@@ -34,16 +37,17 @@ except NameError:
         return True
 
 
-def download_zip(zip_filename, basename):
-    sys.stderr.write('Downloading %s: ' % zip_filename)
+def download_zip(zip_filename, basename, baseurl):
+    url = baseurl + basename + '.zip'
+    sys.stderr.write('Downloading %s: ' % url)
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.zip')
     try:
-        url = urlopen(URL + basename + '.zip')
-        buffer = url.read(65536)
+        url_file = urlopen(url)
+        buffer = url_file.read(65536)
         while buffer:
             sys.stderr.write('d')
             tmp_file.write(buffer)
-            buffer = url.read(65536)
+            buffer = url_file.read(65536)
     except HTTPError:
         if sys.exc_info()[1].code != 404:
             raise
@@ -138,10 +142,12 @@ def main(argv):
     parser.add_option('-y', action='callback', type=int, callback=on_y)
     parser.add_option('--download', action='store_true', dest='download')
     parser.add_option('--no-download', action='store_false', dest='download')
+    parser.add_option('--url', type=str)
     parser.add_option('--tile', action='store_true', dest='tile')
     parser.add_option('--no-tile', action='store_false', dest='tile')
     parser.add_option('--tilez', action='store_true', dest='tilez')
     parser.add_option('--no-tilez', action='store_false', dest='tilez')
+    parser.set_defaults(url='jrc')
     parser.set_defaults(download=True)
     parser.set_defaults(tile=False)
     parser.set_defaults(tilez=True)
@@ -151,7 +157,7 @@ def main(argv):
             basename = 'srtm_%02d_%02d' % (x, y)
             zip_filename = os.path.join(SRTM_DIR, 'zip', basename + '.zip')
             if options.download and not os.path.exists(zip_filename):
-                download_zip(zip_filename, basename)
+                download_zip(zip_filename, basename, URLS.get(options.url, options.url))
             tile_filename = os.path.join(SRTM_DIR, 'tile', basename + '.tile')
             if options.tile and not os.path.exists(tile_filename) and os.path.exists(zip_filename):
                 create_tile(tile_filename, basename, zip_filename)
