@@ -95,13 +95,13 @@ def create_tilez(tilez_filename, basename, zip_filename):
                 if i % 100 == 99:
                     sys.stderr.write('z')
                 if all(cell == NODATA_VALUE for cell in row):
-                    offsets.append(-1)
+                    offsets.append(0)
                 else:
                     offsets.append(offset)
                     compressed_row = compress(pack('!%dh' % NCOLS, *row))
-                    tmp_file.write(pack('!i', len(compressed_row)))
-                    assert len(compressed_row) + calcsize('!i') <= 16384
-                    offset += calcsize('!i')
+                    tmp_file.write(pack('!I', len(compressed_row)))
+                    assert len(compressed_row) + calcsize('!I') <= 16384
+                    offset += calcsize('!I')
                     tmp_file.write(compressed_row)
                     offset += len(compressed_row)
                     if offset % 4:

@@ -44,7 +44,7 @@ function get_elevation_srtm_tilez($lat, $lng) {
 		$file = fopen($tilez_filename, "rb");
 		fseek($file, 4 * ($y % 6000));
 		$offset = unpack("N", fread($file, 4));
-		if ($offset[1] == -1) {
+		if (!$offset[1]) {
 			fclose($file);
 			return -9999;
 		}
