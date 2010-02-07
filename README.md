@@ -54,7 +54,7 @@ The recommended configuration is to use compressed tiles for all areas except th
 	bin/srtm-get --all
 	bin/srtm-get --european-alps --tile
 
-XC Planner can use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because this is very slow.
+XC Planner can use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
 
 ### XContest airspace and SkyWays ###
 
