@@ -56,11 +56,11 @@ The recommended configuration is to use compressed tiles for all areas except th
 
 The compressed tiles require approximately 17GB of disk space, the four uncompressed European Alps tiles require an additional 276MB.
 
-XC Planner can use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
-
 The `--ignore-errors` option causes `srtm-download` to ignore errors due to slow downloads, corrupt zip files, and so on.  It&quot;s useful if you want to start downloading tiles and then grab a coffee.  After it has completed, you can run `srtm-download` again but without the `--ignore-errors` option to see where it encountered problems.
 
 Note that `srtm-download` assumes that individual CGIAR-CSI tiles are 6000&times;6000 points.  For an unknown reason, some tiles have different sizes.
+
+XC Planner can also use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
 
 ### XContest airspace and SkyWays ###
 
