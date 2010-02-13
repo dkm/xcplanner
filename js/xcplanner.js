@@ -282,27 +282,36 @@ function circle(latLng, r, n) {
 	return $R(0, n).map(function(i) { return latLngAt(latLng, 2.0 * Math.PI * i / n, r / R); });
 }
 
-function faiSectorHelper(pixel, a, b, c, theta, flip) {
-	var x = (b * b + c * c - a * a) / (2 * c);
-	var y = Math.sqrt(b * b - x * x);
-	return new GPoint(pixel.x + x * Math.cos(theta) - y * Math.sin(theta), pixel.y + flip * (x * Math.sin(theta) + y * Math.cos(theta)));
-}
-
 function faiSector(pixels) {
 	var flip = isClockwise(pixels) ? 1 : -1;
 	var delta = new GPoint(pixels[1].x - pixels[0].x, pixels[1].y - pixels[0].y);
 	var theta = flip * Math.atan2(delta.y, delta.x);
+	var cos_theta = Math.cos(theta);
+	var sin_theta = Math.sin(theta);
+	var a, b, x, y;
 	var c = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
 	var result = [];
-	$R(28, 44, true).each(function(ap) {
-		result.push(faiSectorHelper(pixels[0], c * ap / 28.0, c * (72.0 - ap) / 28.0, c, theta, flip));
-	});
-	$R(28, 44, true).each(function(cp) {
-		result.push(faiSectorHelper(pixels[0], c * (72.0 - cp) / cp, c * 28.0 / cp, c, theta, flip));
-	});
-	$R(28, 44).each(function(_cp) {
-		result.push(faiSectorHelper(pixels[0], c * 28.0 / (72.0 - _cp), c * _cp / (72.0 - _cp), c, theta, flip));
-	});
+	for (ap = 28; ap < 44; ++ap) {
+		a = c * ap / 28.0;
+		b = c * (72.0 - ap) / 28.0;
+		x = (b * b + c * c - a * a) / (2 * c);
+		y = Math.sqrt(b * b - x * x);
+		result.push(new GPoint(pixels[0].x + x * cos_theta - y * sin_theta, pixels[0].y + flip * (x * sin_theta + y * cos_theta)));
+	}
+	for (cp = 28; cp < 44; ++cp) {
+		a = c * (72.0 - cp) / cp;
+		b = c * 28.0 / cp;
+		x = (b * b + c * c - a * a) / (2 * c);
+		y = Math.sqrt(b * b - x * x);
+		result.push(new GPoint(pixels[0].x + x * cos_theta - y * sin_theta, pixels[0].y + flip * (x * sin_theta + y * cos_theta)));
+	}
+	for (cp = 44; cp >= 28; --cp) {
+		a = c * 28.0 / cp;
+		b = c * (72.0 - cp) / cp;
+		x = (b * b + c * c - a * a) / (2 * c);
+		y = Math.sqrt(b * b - x * x);
+		result.push(new GPoint(pixels[0].x + x * cos_theta - y * sin_theta, pixels[0].y + flip * (x * sin_theta + y * cos_theta)));
+	}
 	return result.map(function(pixel) { return map.fromContainerPixelToLatLng(pixel); });
 }
 
