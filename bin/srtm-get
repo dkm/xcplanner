@@ -147,6 +147,7 @@ def main(argv):
     parser.add_option('--no-tile', action='store_false', dest='tile')
     parser.add_option('--tilez', action='store_true', dest='tilez')
     parser.add_option('--no-tilez', action='store_false', dest='tilez')
+    parser.add_option('--ignore-errors', action='store_true', dest='ignore_errors')
     parser.set_defaults(url='jrc')
     parser.set_defaults(download=True)
     parser.set_defaults(tile=False)
@@ -154,16 +155,22 @@ def main(argv):
     options, args = parser.parse_args(argv[1:])
     for x in options.xs:
         for y in options.ys:
-            basename = 'srtm_%02d_%02d' % (x, y)
-            zip_filename = os.path.join(SRTM_DIR, 'zip', basename + '.zip')
-            if options.download and not os.path.exists(zip_filename):
-                download_zip(zip_filename, basename, URLS.get(options.url, options.url))
-            tile_filename = os.path.join(SRTM_DIR, 'tile', basename + '.tile')
-            if options.tile and not os.path.exists(tile_filename) and os.path.exists(zip_filename):
-                create_tile(tile_filename, basename, zip_filename)
-            tilez_filename = os.path.join(SRTM_DIR, 'tilez', basename + '.tilez')
-            if options.tilez and not os.path.exists(tilez_filename) and os.path.exists(zip_filename):
-                create_tilez(tilez_filename, basename, zip_filename)
+            try:
+                basename = 'srtm_%02d_%02d' % (x, y)
+                zip_filename = os.path.join(SRTM_DIR, 'zip', basename + '.zip')
+                if options.download and not os.path.exists(zip_filename):
+                    download_zip(zip_filename, basename, URLS.get(options.url, options.url))
+                tile_filename = os.path.join(SRTM_DIR, 'tile', basename + '.tile')
+                if options.tile and not os.path.exists(tile_filename) and os.path.exists(zip_filename):
+                    create_tile(tile_filename, basename, zip_filename)
+                tilez_filename = os.path.join(SRTM_DIR, 'tilez', basename + '.tilez')
+                if options.tilez and not os.path.exists(tilez_filename) and os.path.exists(zip_filename):
+                    create_tilez(tilez_filename, basename, zip_filename)
+            except:
+                if options.ignore_errors:
+                    sys.stderr.write('%s (ignored)\n' % str(sys.exc_info()))
+                else:
+                    raise
 
 
 if __name__ == '__main__':
