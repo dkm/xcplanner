@@ -168,7 +168,7 @@ def main(argv):
                     create_tilez(tilez_filename, basename, zip_filename)
             except:
                 if options.ignore_errors:
-                    sys.stderr.write('%s (ignored)\n' % str(sys.exc_info()))
+                    sys.stderr.write('%s (ignored)\n' % repr(sys.exc_info()))
                 else:
                     raise
 
