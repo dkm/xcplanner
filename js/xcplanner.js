@@ -47,17 +47,14 @@ var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
 		cfd2: {
 			description: "Distance libre",
-			multiplier: 1.0,
 			n: 2,
 		},
 		cfd3: {
 			description: "Distance libre (1 point)",
-			multiplier: 1.0,
 			n: 3,
 		},
 		cfd4: {
 			description: "Distance libre (2 points)",
-			multiplier: 1.0,
 			n: 4,
 		},
 		cfd2c: {
@@ -118,22 +115,18 @@ var leagues = {
 	"UK National XC League": {
 		ukxcl2: {
 			description: "Open distance",
-			multiplier: 1.0,
 			n: 2,
 		},
 		ukxcl3: {
 			description: "Turnpoint flight",
-			multiplier: 1.0,
 			n: 3,
 		},
 		ukxcl4: {
 			description: "Turnpoint flight (2 turnpoints)",
-			multiplier: 1.0,
 			n: 4,
 		},
 		ukxcl5: {
 			description: "Turnpoint flight (3 turnpoints)",
-			multiplier: 1.0,
 			n: 5,
 		},
 		ukxcl2c: {
@@ -493,8 +486,8 @@ function XCScore(flight) {
 	flight.color = COLOR.good;
 	flight.description = flightType.description;
 	flight.distance = flight.totalDistance;
-	flight.multiplier = flightType.multiplier;
-	flight.score = flight.totalDistance * flightType.multiplier / 1000.0;
+	flight.multiplier = flightType.multiplier || 1.0;
+	flight.score = flight.totalDistance * flight.multiplier / 1000.0;
 	flight.circuitCenter = null;
 	flight.circuitSize = flightType.circuitSize;
 	flight.circuitTarget = null;
