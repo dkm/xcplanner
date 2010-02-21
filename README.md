@@ -10,7 +10,7 @@ XC Planner is a web application for planning cross country flights.  Notable fea
 * Generation of GPX files for easy upload to your GPS, including accurate waypoint elevations
 * Generation of links so you can share your flight planning with others
 
-You install it on a web server and then can access it from anywhere using your web browser.  This document is for system administrators who wish to install XC Planner on their own servers, if you&rsquo;re a pilot then it&rsquo;s easiest to use an existing installation such as the one at http://www.paraglidingforum.com/xcplanner/.
+You install it on a web server and then can access it from anywhere using your web browser.  This document is for system administrators who wish to install XC Planner on their own servers, if you&rsquo;re a pilot then it&rsquo;s easiest to use an existing installation such as the one at [paraglidingforum.com](http://www.paraglidingforum.com/xcplanner/).
 
 
 Basic Installation
@@ -32,7 +32,7 @@ Basic Installation
 Linking to XC Planner
 ---------------------
 
-If you&rsquo;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. http://www.paraglidingforum.com/xcplanner/) then you can set suitable defaults with a query string.  The available options are:
+If you&rsquo;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. [paraglidingforum.com](http://www.paraglidingforum.com/xcplanner/)) then you can set suitable defaults with a query string.  The available options are:
 
 * `location=`_name_
 * `flightType=`_type_
