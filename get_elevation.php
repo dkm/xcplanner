@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 	$rev = floatval($_POST["rev"]);
 }
 
-$result = array(ele => $get_elevation($lat, $lng), rev => $rev);
+$result = array("ele" => $get_elevation($lat, $lng), "rev" => $rev);
 
 if ($DEBUG) {
 	print "<pre>";
