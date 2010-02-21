@@ -37,7 +37,7 @@ If you&quot;re hosting XC Planner on your own server then you can edit `config.p
 * `turnpoints=[[`_lat1_`,`_lng1_`],[`_lat2_`,`_lng2_`],`...`]`
 * `start=[`_lat_`,`_lng_`]`
 
-These can be used to set sensible defaults if you want to link to XC planner from your XC league&quot;s website.  For example:
+These can be used to set sensible defaults if you want to link to XC Planner from your XC league&quot;s website.  For example:
 
 * OLC 5-point flight around Interlaken: `http://www.paraglidingforum.com/xcplanner/?location=Interlaken&flightType=olc5`
 * CFD FAI triangle around Chamonix: `http://www.paraglidingforum.com/xcplanner/?location=Chamonix&flightType=cfd3c`
