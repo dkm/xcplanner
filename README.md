@@ -21,7 +21,7 @@ Basic Installation
 Linking to XC Planner
 ---------------------
 
-XC Planner accepts a query string which is used to set the initial state.  These are:
+If you&quot;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. http://www.paraglidingforum.com/xcplanner/) then you can set suitable defaults with a query string.  The available options are:
 
 * `location=`_name_
 * `flightType=`_type_
@@ -30,8 +30,8 @@ XC Planner accepts a query string which is used to set the initial state.  These
 
 These can be used to set sensible defaults if you want to link to XC planner from your XC league&quot;s website.  For example:
 
-* OLC 5-point flight around Interlaken: `http://localhost/xcplanner/?location=Interlaken&flightType=olc5`
-* CFD FAI triangle around Chamonix: `http://localhost/xcplanner/?location=Chamonix&flightType=cfd3c`
+* OLC 5-point flight around Interlaken: `http://www.paraglidingforum.com/xcplanner/?location=Interlaken&flightType=olc5`
+* CFD FAI triangle around Chamonix: `http://www.paraglidingforum.com/xcplanner/?location=Chamonix&flightType=cfd3c`
 
 
 Advanced Installation
