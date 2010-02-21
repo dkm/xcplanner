@@ -6,11 +6,11 @@ XC Planner is a web application for planning cross country flights.  Notable fea
 * Based on [Google Maps](http://maps.google.com)
 * Intuitive user interface
 * Support for many flight types including open distance, out-and-returns and triangles
-* Support for [XContest](http://www.xcontest.org/)&quot;s airspace and SkyWays maps
+* Support for [XContest](http://www.xcontest.org/)&rsquo;s airspace and SkyWays maps
 * Generation of GPX files for easy upload to your GPS, including accurate waypoint elevations
 * Generation of links so you can share your flight planning with others
 
-You install it on a web server and then can access it from anywhere using your web browser.  This document is for system administrators who wish to install XC Planner on their own servers, if you&quot;re a pilot then it&quot;s easiest to use an existing installation such as the one at http://www.paraglidingforum.com/xcplanner/.
+You install it on a web server and then can access it from anywhere using your web browser.  This document is for system administrators who wish to install XC Planner on their own servers, if you&rsquo;re a pilot then it&rsquo;s easiest to use an existing installation such as the one at http://www.paraglidingforum.com/xcplanner/.
 
 
 Basic Installation
@@ -32,14 +32,14 @@ Basic Installation
 Linking to XC Planner
 ---------------------
 
-If you&quot;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. http://www.paraglidingforum.com/xcplanner/) then you can set suitable defaults with a query string.  The available options are:
+If you&rsquo;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. http://www.paraglidingforum.com/xcplanner/) then you can set suitable defaults with a query string.  The available options are:
 
 * `location=`_name_
 * `flightType=`_type_
 * `turnpoints=[[`_lat1_`,`_lng1_`],[`_lat2_`,`_lng2_`],`...`]`
 * `start=[`_lat_`,`_lng_`]`
 
-These can be used to set sensible defaults if you want to link to XC Planner from your XC league&quot;s website.  For example:
+These can be used to set sensible defaults if you want to link to XC Planner from your XC league&rsquo;s website.  For example:
 
 * OLC 5-point flight around Interlaken: `http://www.paraglidingforum.com/xcplanner/?location=Interlaken&flightType=olc5`
 * CFD FAI triangle around Chamonix: `http://www.paraglidingforum.com/xcplanner/?location=Chamonix&flightType=cfd3c`
@@ -67,7 +67,7 @@ The recommended configuration is to use compressed tiles for all areas except th
 
 The compressed tiles require approximately 17GB of disk space, the four uncompressed European Alps tiles require an additional 276MB.
 
-The `--ignore-errors` option causes `srtm-download` to ignore errors due to slow downloads, corrupt zip files, and so on.  It&quot;s useful if you want to start downloading tiles and then grab a coffee.  After it has completed, you can run `srtm-download` again but without the `--ignore-errors` option to see where it encountered problems.
+The `--ignore-errors` option causes `srtm-download` to ignore errors due to slow downloads, corrupt zip files, and so on.  It&rsquo;s useful if you want to start downloading tiles and then grab a coffee.  After it has completed, you can run `srtm-download` again but without the `--ignore-errors` option to see where it encountered problems.
 
 Note that `srtm-download` assumes that individual CGIAR-CSI tiles are 6000&times;6000 points.  For an unknown reason, some tiles have different sizes.
 
@@ -75,4 +75,4 @@ XC Planner can also use a USGS webservice to retrieve elevation data if the SRTM
 
 ### XContest airspace and SkyWays ###
 
-[XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detectes that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&quot;s airspace data availble on your site!  XContest&quot;s webservers will not serve this data to unauthorized sites. To request permission to use the XContest data contact info@xcontest.org.
+[XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detectes that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&rsquo;s airspace data availble on your site!  XContest&rsquo;s webservers will not serve this data to unauthorized sites. To request permission to use the XContest data contact info@xcontest.org.
