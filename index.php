@@ -1,6 +1,6 @@
 <?php
 
-require_once("config.php");
+require_once("xcplanner.php");
 require_once("$SMARTY_DIR/Smarty.class.php");
 
 $smarty = new Smarty;
