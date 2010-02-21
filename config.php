@@ -25,7 +25,7 @@ function get_elevation_srtm_tile($lat, $lng) {
 		}
 		$file = fopen($tile_filename, "rb");
 		fseek($file, 2 * (6000 * ($y % 6000) + ($x % 6000)));
-		$ele = unpack("n", fread($file, 2));
+		$ele = unpack("s", fread($file, 2));
 		fclose($file);
 		return $ele[1];
 	}
@@ -43,7 +43,7 @@ function get_elevation_srtm_tilez($lat, $lng) {
 		}
 		$file = fopen($tilez_filename, "rb");
 		fseek($file, 4 * ($y % 6000));
-		$offset = unpack("N", fread($file, 4));
+		$offset = unpack("L", fread($file, 4));
 		if (!$offset[1]) {
 			fclose($file);
 			return -9999;
@@ -51,9 +51,9 @@ function get_elevation_srtm_tilez($lat, $lng) {
 		fseek($file, $offset[1]);
 		$buffer = fread($file, 16384);
 		fclose($file);
-		$length = unpack("N", substr($buffer, 0, 4));
+		$length = unpack("L", substr($buffer, 0, 4));
 		$row = gzuncompress(substr($buffer, 4, $length[1]));
-		$ele = unpack("n", substr($row, 2 * ($x % 6000), 2));
+		$ele = unpack("s", substr($row, 2 * ($x % 6000), 2));
 		return $ele[1];
 	}
 	return -9999;

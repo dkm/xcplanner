@@ -79,7 +79,7 @@ def create_tile(tile_filename, basename, zip_filename):
         for i, row in enumerate(rows(zip_filename, basename)):
             if i % 100 == 99:
                 sys.stderr.write('t')
-            tmp_file.write(pack('!%dh' % NCOLS, *row))
+            tmp_file.write(pack('%dh' % NCOLS, *row))
         os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, tile_filename)
         sys.stderr.write('\n')
@@ -92,7 +92,7 @@ def create_tilez(tilez_filename, basename, zip_filename):
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tilez')
     try:
         if os.path.getsize(zip_filename):
-            offset = calcsize('!%di' % NROWS)
+            offset = calcsize('%dI' % NROWS)
             offsets = []
             tmp_file.write('\0' * offset)
             for i, row in enumerate(rows(zip_filename, basename)):
@@ -102,17 +102,17 @@ def create_tilez(tilez_filename, basename, zip_filename):
                     offsets.append(0)
                 else:
                     offsets.append(offset)
-                    compressed_row = compress(pack('!%dh' % NCOLS, *row))
-                    tmp_file.write(pack('!I', len(compressed_row)))
-                    assert len(compressed_row) + calcsize('!I') <= 16384
-                    offset += calcsize('!I')
+                    compressed_row = compress(pack('%dh' % NCOLS, *row))
+                    tmp_file.write(pack('I', len(compressed_row)))
+                    assert len(compressed_row) + calcsize('I') <= 16384
+                    offset += calcsize('I')
                     tmp_file.write(compressed_row)
                     offset += len(compressed_row)
                     if offset % 4:
                         tmp_file.write('\0' * (4 - offset % 4))
                         offset += 4 - offset % 4
             tmp_file.seek(0)
-            tmp_file.write(pack('!%di' % NROWS, *offsets))
+            tmp_file.write(pack('%dI' % NROWS, *offsets))
         os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, tilez_filename)
         sys.stderr.write('\n')
