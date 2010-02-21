@@ -7,7 +7,6 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-import stat
 from struct import calcsize, pack
 import sys
 from tempfile import NamedTemporaryFile
@@ -37,7 +36,7 @@ except NameError:
         return True
 
 
-def download_zip(zip_filename, basename, baseurl):
+def download_zip(zip_filename, basename, baseurl, mode):
     url = baseurl + basename + '.zip'
     sys.stderr.write('Downloading %s: ' % url)
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.zip')
@@ -51,7 +50,7 @@ def download_zip(zip_filename, basename, baseurl):
     except HTTPError:
         if sys.exc_info()[1].code != 404:
             raise
-    os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+    os.chmod(tmp_file.name, mode)
     os.link(tmp_file.name, zip_filename)
     sys.stderr.write('\n')
 
@@ -72,7 +71,7 @@ def rows(zip_filename, basename):
             yield map(int, asc_file.readline().split())
 
 
-def create_tile(tile_filename, basename, zip_filename):
+def create_tile(tile_filename, basename, zip_filename, mode):
     sys.stderr.write('Creating %s: ' % tile_filename)
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tile')
     try:
@@ -80,13 +79,14 @@ def create_tile(tile_filename, basename, zip_filename):
             if i % 100 == 99:
                 sys.stderr.write('t')
             tmp_file.write(pack('%dh' % NCOLS, *row))
+        os.chmod(tmp_file.name, mode)
         os.link(tmp_file.name, tile_filename)
         sys.stderr.write('\n')
     except BadZipfile:
         sys.stderr.write('BadZipfile\n')
 
 
-def create_tilez(tilez_filename, basename, zip_filename):
+def create_tilez(tilez_filename, basename, zip_filename, mode):
     sys.stderr.write('Creating %s: ' % tilez_filename)
     tmp_file = NamedTemporaryFile(dir=os.path.join(SRTM_DIR, 'tmp'), prefix=basename, suffix='.tilez')
     try:
@@ -112,6 +112,7 @@ def create_tilez(tilez_filename, basename, zip_filename):
                         offset += 4 - offset % 4
             tmp_file.seek(0)
             tmp_file.write(pack('%dI' % NROWS, *offsets))
+        os.chmod(tmp_file.name, mode)
         os.link(tmp_file.name, tilez_filename)
         sys.stderr.write('\n')
     except BadZipfile:
@@ -146,10 +147,16 @@ def main(argv):
     parser.add_option('--tilez', action='store_true', dest='tilez')
     parser.add_option('--no-tilez', action='store_false', dest='tilez')
     parser.add_option('--ignore-errors', action='store_true', dest='ignore_errors')
+    parser.add_option('--tile-mode', type=int)
+    parser.add_option('--zip-mode', type=int)
     parser.set_defaults(url='jrc')
     parser.set_defaults(download=True)
     parser.set_defaults(tile=False)
     parser.set_defaults(tilez=True)
+    umask = os.umask(0)
+    os.umask(umask)
+    parser.set_defaults(tile_mode=0666 & ~umask)
+    parser.set_defaults(zip_mode=0444 & ~umask)
     options, args = parser.parse_args(argv[1:])
     for x in options.xs:
         for y in options.ys:
@@ -157,13 +164,13 @@ def main(argv):
                 basename = 'srtm_%02d_%02d' % (x, y)
                 zip_filename = os.path.join(SRTM_DIR, 'zip', basename + '.zip')
                 if options.download and not os.path.exists(zip_filename):
-                    download_zip(zip_filename, basename, URLS.get(options.url, options.url))
+                    download_zip(zip_filename, basename, URLS.get(options.url, options.url), options.zip_mode)
                 tile_filename = os.path.join(SRTM_DIR, 'tile', basename + '.tile')
                 if options.tile and not os.path.exists(tile_filename) and os.path.exists(zip_filename):
-                    create_tile(tile_filename, basename, zip_filename)
+                    create_tile(tile_filename, basename, zip_filename, options.tile_mode)
                 tilez_filename = os.path.join(SRTM_DIR, 'tilez', basename + '.tilez')
                 if options.tilez and not os.path.exists(tilez_filename) and os.path.exists(zip_filename):
-                    create_tilez(tilez_filename, basename, zip_filename)
+                    create_tilez(tilez_filename, basename, zip_filename, options.tile_mode)
             except:
                 if options.ignore_errors:
                     sys.stderr.write('%s (ignored)\n' % repr(sys.exc_info()))
