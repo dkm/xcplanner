@@ -80,7 +80,6 @@ def create_tile(tile_filename, basename, zip_filename):
             if i % 100 == 99:
                 sys.stderr.write('t')
             tmp_file.write(pack('%dh' % NCOLS, *row))
-        os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, tile_filename)
         sys.stderr.write('\n')
     except BadZipfile:
@@ -113,7 +112,6 @@ def create_tilez(tilez_filename, basename, zip_filename):
                         offset += 4 - offset % 4
             tmp_file.seek(0)
             tmp_file.write(pack('%dI' % NROWS, *offsets))
-        os.chmod(tmp_file.name, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         os.link(tmp_file.name, tilez_filename)
         sys.stderr.write('\n')
     except BadZipfile:
