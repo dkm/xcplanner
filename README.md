@@ -1,7 +1,16 @@
 XC Planner Google Maps cross country flight planning tool
 =========================================================
 
-XC Planner is a web application.  You install it on a web server and then can access it from anywhere using your web browser.
+XC Planner is a web application for planning cross country flights.  Notable features include:
+
+* Based on [Google Maps](http://maps.google.com)
+* Intuitive user interface
+* Support for many flight types including open distance, out-and-returns and triangles
+* Support for [XContest](http://www.xcontest.org/)&quot;s airspace and SkyWays maps
+* Generation of GPX files for easy upload to your GPS, including accurate waypoint elevations
+* Generation of links so you can share your flight planning with others
+
+You install it on a web server and then can access it from anywhere using your web browser.  This document is for system administrators who wish to install XC Planner on their own servers, if you&quot;re a pilot then it&quot;s easiest to use an existing installation such as the one at http://www.paraglidingforum.com/xcplanner/.
 
 
 Basic Installation
