@@ -25,11 +25,11 @@ Basic Installation
 
 4. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions:
 
-<table>
-	<tr><th> Distribution </th><th>     Package name      </th><th><tt> $SMARTY_DIR           </tt></th></tr>
-	<tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
-	<tr><td> Debian       </td><td><tt> smarty       </tt></td><td><tt> /usr/share/php/smarty </tt></td></tr>
-</table>
+	<table>
+		<tr><th> Distribution </th><th>     Package name      </th><th><tt> $SMARTY_DIR           </tt></th></tr>
+		<tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
+		<tr><td> Debian       </td><td><tt> smarty       </tt></td><td><tt> /usr/share/php/smarty </tt></td></tr>
+	</table>
 
 5. Make sure that the `templates_c` directory is writeable by the web server, e.g.
 
@@ -87,3 +87,11 @@ Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `conf
 ### XContest airspace and SkyWays ###
 
 [XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detects that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&rsquo;s airspace data availble on your site!  XContest&rsquo;s web servers will not serve this data to unauthorized sites. To request permission to use the XContest data contact [info@xcontest.org](mailto:info@xcontest.org).
+
+
+Customizing XC Planner
+----------------------
+
+The template for the XC Planner web page is in `templates/index.tpl`.  You are free to modify this as you wish, for example to match the design of your website, subject to the terms of the software license (GPL-3).  Please note terms 4 and 5 of the license which effectively you must state that XC Planner is licenced under the GNU Public License version 3.  The author requests that you include a link to XC Planner&quot;s original source code at http://github.com/twpayne/xcplanner if you use it on your website, but this is a wish and not a requirement (see terms 7 (b) and 7 (c) of the licence).
+
+
