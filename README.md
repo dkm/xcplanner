@@ -11,7 +11,7 @@ XC Planner is a web application for planning cross country flights.  Notable fea
 * Generation of links so you can share your flight planning with others
 * Built on [Google Maps](http://maps.google.com)
 
-You install it on a web server and then can access it from anywhere using your web browser.  This document is for system administrators who wish to install XC Planner on their own servers, if you&rsquo;re a pilot then it&rsquo;s easiest to use an existing installation such as the one at [paraglidingforum.com](http://www.paraglidingforum.com/xcplanner/).
+You install it on a web server and then can access it from anywhere using your web browser.  This document is for system administrators who wish to install XC Planner on their own servers, if you&rsquo;re a pilot then it&rsquo;s easiest to use an existing installation such as the one at <http://www.paraglidingforum.com/xcplanner/>.
 
 
 Basic Installation
@@ -21,7 +21,7 @@ Basic Installation
 
 2. Copy `config.php.sample` to `config.php`.
 
-3. Get a [Google Maps API key](http://code.google.com/apis/maps/signup.html) for your website and set `$GOOGLE_MAPS_API_KEY` in `config.php`.  The default key distributed with XC Planner is for `http://localhost/`.
+3. Get a [Google Maps API key](http://code.google.com/apis/maps/signup.html) for your website and set `$GOOGLE_MAPS_API_KEY` in `config.php`.  The default key distributed with XC Planner is for <http://localhost/>.
 
 4. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions:
 
@@ -33,15 +33,15 @@ Basic Installation
 
 5. Make sure that the `templates_c` directory is writeable by the web server, e.g.
 
-	chown apache:apache templates_c
+		chown apache:apache templates_c
 
-6. Point your web browser at `http://localhost/xcplanner/`.
+6. Point your web browser at <http://localhost/xcplanner/>.
 
 
 Linking to XC Planner
 ---------------------
 
-If you&rsquo;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. [paraglidingforum.com](http://www.paraglidingforum.com/xcplanner/)) then you can set suitable defaults with a query string.  The available options are:
+If you&rsquo;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. <http://www.paraglidingforum.com/xcplanner/>) then you can set suitable defaults with a query string.  The available options are:
 
 * `location=`_name_
 * `flightType=`_type_
@@ -50,8 +50,8 @@ If you&rsquo;re hosting XC Planner on your own server then you can edit `config.
 
 These can be used to set sensible defaults if you want to link to XC Planner from your XC league&rsquo;s website.  For example:
 
-* OLC 5-point flight around Interlaken: `http://www.paraglidingforum.com/xcplanner/?location=Interlaken&flightType=olc5`
-* CFD FAI triangle around Chamonix: `http://www.paraglidingforum.com/xcplanner/?location=Chamonix&flightType=cfd3c`
+* OLC 5-point flight around Interlaken: <http://www.paraglidingforum.com/xcplanner/?location=Interlaken&flightType=olc5>
+* CFD FAI triangle around Chamonix: <http://www.paraglidingforum.com/xcplanner/?location=Chamonix&flightType=cfd3c>
 
 
 Advanced Installation
@@ -92,6 +92,18 @@ Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `conf
 Customizing XC Planner
 ----------------------
 
-The template for the XC Planner web page is in `templates/index.tpl`.  You are free to modify this as you wish, for example to match the design of your website, subject to the terms of the software license (GPL-3).  Please note terms 4 and 5 of the license which effectively you must state that XC Planner is licenced under the GNU Public License version 3.  The author requests that you include a link to XC Planner&quot;s original source code at http://github.com/twpayne/xcplanner if you use it on your website, but this is a wish and not a requirement (see terms 7 (b) and 7 (c) of the licence).
+The template for the XC Planner web page is in `templates/index.tpl`.  You are free to modify this as you wish, for example to match the design of your website, subject to the terms of the software license. The author requests that you include a link to XC Planner&quot;s original source code at <http://github.com/twpayne/xcplanner> if you use it on your website, but this is a request and not does not change the license in any way.
 
 
+License
+=======
+
+XC Planner Google Maps cross country flight planning tool
+
+Copyright &copy; 2009, 2010 Tom Payne
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
