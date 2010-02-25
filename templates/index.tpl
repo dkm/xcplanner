@@ -54,10 +54,12 @@
 					<td><label for="faiSectors">FAI triangle areas:</label></td>
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
 				</tr>
+{if $ELEVATION}
 				<tr>
 					<td><label for="elevation">Elevations:</label></td>
 					<td><input id="elevation" type="checkbox" onchange="XCToggleElevations();"/></td>
 				</tr>
+{/if}
 				<tr>
 					<td><label for="circuit">Closed circuit area:</label></td>
 					<td>
