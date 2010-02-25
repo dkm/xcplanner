@@ -17,7 +17,7 @@ You install it on a web server and then can access it from anywhere using your w
 Basic Installation
 ------------------
 
-1. Unpack XC Planner in to a suitable directory on your webserver, e.g. `/var/www/html/xcplanner`.
+1. Unpack XC Planner in to a suitable directory on your web server, e.g. `/var/www/html/xcplanner`.
 
 2. Copy `config.php.sample` to `config.php`.
 
@@ -25,7 +25,7 @@ Basic Installation
 
 4. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions. The RedHat package is called `php-Smarty` and the Debian package is called `smarty`.
 
-5. Make sure that the `templates_c` directory is writeable by the webserver, e.g. `chown apache:apache templates_c`.
+5. Make sure that the `templates_c` directory is writeable by the web server, e.g. `chown apache:apache templates_c`.
 
 6. Point your web browser at `http://localhost/xcplanner/`.
 
@@ -51,11 +51,11 @@ Advanced Installation
 
 ### Elevation data ###
 
-XC Planner can use [CGIAR-CSI](http://srtm.csi.cgiar.org/) data to determine turnpoint elevations.  The program `bin/srtm-download` can be used to download and prepare this data for use.  It is advisable to download the CGIAR-CSI tiles for the areas you wish to cover. For example, to download the data for Europea, run
+XC Planner can use [CGIAR-CSI](http://srtm.csi.cgiar.org/) data to determine turnpoint elevations.  The program `bin/srtm-download` can be used to download and prepare this data for use.  It is advisable to download the CGIAR-CSI tiles for the areas you wish to cover. For example, to download the data for Europe, run
 
 	bin/srtm-download --europe
 
-To download the the data for the entire world, run
+To download the data for the entire world, run
 
 	bin/srtm-download --all --ignore-errors
 
@@ -72,10 +72,10 @@ The `--ignore-errors` option causes `srtm-download` to ignore errors due to slow
 
 Note that `srtm-download` assumes that individual CGIAR-CSI tiles are 6000&times;6000 points.  For an unknown reason, some tiles have different sizes.
 
-XC Planner can also use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
+XC Planner can also use a USGS web service to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
 
-Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `config.php` to activate in the web interface.  Note that an HTTP request is made each time a user moves a turnpoint marker.  This can result in hundreds of HTTP requests which can put a significant load on your webserver.  Think carefully before enabling this feature.
+Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `config.php` to activate in the web interface.  Note that an HTTP request is made each time a user moves a turnpoint marker.  This can result in hundreds of HTTP requests which can put a significant load on your web server.  Think carefully before enabling this feature.
 
 ### XContest airspace and SkyWays ###
 
-[XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detects that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&rsquo;s airspace data availble on your site!  XContest&rsquo;s webservers will not serve this data to unauthorized sites. To request permission to use the XContest data contact [info@xcontest.org](mailto:info@xcontest.org).
+[XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detects that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&rsquo;s airspace data availble on your site!  XContest&rsquo;s web servers will not serve this data to unauthorized sites. To request permission to use the XContest data contact [info@xcontest.org](mailto:info@xcontest.org).
