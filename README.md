@@ -88,8 +88,7 @@ Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `conf
 [XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detects that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&rsquo;s airspace data availble on your site!  XContest&rsquo;s web servers will not serve this data to unauthorized sites. To request permission to use the XContest data contact [info@xcontest.org](mailto:info@xcontest.org).
 
 
-Customizing XC Planner
-----------------------
+### Customizing XC Planner ###
 
 The template for the XC Planner web page is in `templates/index.tpl`.  You are free to modify this as you wish, for example to match the design of your website, subject to the terms of the software license. The author requests that you include a link to XC Planner&quot;s original source code at <http://github.com/twpayne/xcplanner> if you use it on your website, but this is a request and does not change the license in any way.
 
