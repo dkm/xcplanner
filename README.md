@@ -43,10 +43,10 @@ Linking to XC Planner
 
 If you&rsquo;re hosting XC Planner on your own server then you can edit `config.php` to set suitable defaults.  If you prefer to use an existing installation (e.g. <http://www.paraglidingforum.com/xcplanner/>) then you can set suitable defaults with a query string.  The available options are:
 
-* `location=`_name_
-* `flightType=`_type_
-* `turnpoints=[[`_lat1_`,`_lng1_`],[`_lat2_`,`_lng2_`],`...`]`
-* `start=[`_lat_`,`_lng_`]`
+* `location=_name_`
+* `flightType=_type_`
+* `turnpoints=[[_lat1_,_lng1_],[_lat2_,_lng2_],...]`
+* `start=[_lat_,_lng_]`
 
 These can be used to set sensible defaults if you want to link to XC Planner from your XC league&rsquo;s website.  For example:
 
