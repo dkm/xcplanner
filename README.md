@@ -24,7 +24,6 @@ Basic Installation
 3. Get a [Google Maps API key](http://code.google.com/apis/maps/signup.html) for your website and set `$GOOGLE_MAPS_API_KEY` in `config.php`.  The default key distributed with XC Planner is for <http://localhost/>.
 
 4. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions:
-
   <table>
 	<tr><th> Distribution </th><th>     Package name      </th><th><tt> $SMARTY_DIR           </tt></th></tr>
 	<tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
