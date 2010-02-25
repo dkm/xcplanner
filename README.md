@@ -74,6 +74,8 @@ Note that `srtm-download` assumes that individual CGIAR-CSI tiles are 6000&times
 
 XC Planner can also use a USGS webservice to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
 
+Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `config.php` to activate in the web interface.  Note that an HTTP request is made each time a user moves a turnpoint marker.  This can result in hundreds of HTTP requests which can put a significant load on your webserver.  Think carefully before enabling this feature.
+
 ### XContest airspace and SkyWays ###
 
 [XContest](http://www.xcontest.org/) have kindly made their airspace and SkyWays overlays available for use by XC Planner hosted on a limited number of sites.  XC Planner currently has a hard coded list of these sites and will automatically enable the XContest overlays if it detects that it running on one of them.  If you wish to override this, set the `$XCONTEST` variable to `true` in `config.php`.  Note that simply overriding this will not make XContest&rsquo;s airspace data availble on your site!  XContest&rsquo;s webservers will not serve this data to unauthorized sites. To request permission to use the XContest data contact [info@xcontest.org](mailto:info@xcontest.org).
