@@ -25,11 +25,11 @@ Basic Installation
 
 4. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions:
 
-	<table>
-		<tr><th> Distribution </th><th>     Package name      </th><th><tt> $SMARTY_DIR           </tt></th></tr>
-		<tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
-		<tr><td> Debian       </td><td><tt> smarty       </tt></td><td><tt> /usr/share/php/smarty </tt></td></tr>
-	</table>
+   <table>
+      <tr><th> Distribution </th><th>     Package name      </th><th><tt> $SMARTY_DIR           </tt></th></tr>
+      <tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
+      <tr><td> Debian       </td><td><tt> smarty       </tt></td><td><tt> /usr/share/php/smarty </tt></td></tr>
+   </table>
 
 5. Make sure that the `templates_c` directory is writeable by the web server, e.g.
 
