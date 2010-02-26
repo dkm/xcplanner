@@ -101,6 +101,9 @@
 			<input id="defaultFlightType" type="hidden" value="{$flightType|escape}"/>
 			<input id="defaultTurnpoints" type="hidden" value="{$turnpoints|escape}"/>
 			<input id="defaultStart" type="hidden" value="{$start|escape}"/>
+{if !$ELEVATION}
+			<input id="elevation" type="hidden" value=""/>
+{/if}
 		</div>
 		<div id="right">
 			<div id="map"></div>
