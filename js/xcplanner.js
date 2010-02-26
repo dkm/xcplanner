@@ -651,8 +651,8 @@ function XCUpdateMarkerElevation(i) {
 	} else {
 		new Ajax.Request("get_elevation.php", {
 			onSuccess: function(response) {
+				elevationCache[key] = response.responseJSON.ele;
 				if (response.responseJSON.rev > marker.rev) {
-					elevationCache[key] = response.responseJSON.ele;
 					marker.ele = response.responseJSON.ele;
 					marker.rev = response.responseJSON.rev;
 					$("tp" + (i + 1).toString() + "ele").update(formatElevation(marker.ele));
