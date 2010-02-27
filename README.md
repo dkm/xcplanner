@@ -17,7 +17,12 @@ You install it on a web server and then can access it from anywhere using your w
 Basic Installation
 ------------------
 
-1. Unpack XC Planner in to a suitable directory on your web server, e.g. `/var/www/html/xcplanner`.
+1. Unpack XC Planner in to a suitable directory on your web server, e.g. `/var/www/html/xcplanner`.  The easiest way to do this is to directly check out the latest version from GitHub:
+
+	cd /var/www/html
+	git clone http://github.com/twpayne/xcplanner.git
+
+You can then update XC Planner at any time running `git pull`.  Alternatively, you can simply download a tar or zip file from <http://github.com/twpayne/xcplanner/archives/master>.
 
 2. Copy `config.php.sample` to `config.php`.
 
