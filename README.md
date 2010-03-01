@@ -34,7 +34,7 @@ Basic Installation
 	<tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
 	<tr><td> Debian       </td><td><tt> smarty       </tt></td><td><tt> /usr/share/php/smarty </tt></td></tr>
   </table>
-  If you&squot;re installing on RedHat then you will also need the `php-pecl-json` package.
+  If you're installing on RedHat then you will also need the `php-pecl-json` package.
 
 5. Make sure that the `templates_c` directory is writeable by the web server, e.g.
 
@@ -96,7 +96,7 @@ Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `conf
 
 ### Customizing XC Planner ###
 
-The template for the XC Planner web page is in `templates/index.tpl`.  You are free to modify this as you wish, for example to match the design of your website, subject to the terms of the software license. The author requests that you include a link to XC Planner&quot;s original source code at <http://github.com/twpayne/xcplanner> if you use it on your website, but this is a request and does not change the license in any way.
+The template for the XC Planner web page is in `templates/index.tpl`.  You are free to modify this as you wish, for example to match the design of your website, subject to the terms of the software license. The author requests that you include a link to XC Planner's original source code at <http://github.com/twpayne/xcplanner> if you use it on your website, but this is a request and does not change the license in any way.
 
 
 License
