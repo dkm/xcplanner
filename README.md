@@ -34,6 +34,7 @@ Basic Installation
 	<tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
 	<tr><td> Debian       </td><td><tt> smarty       </tt></td><td><tt> /usr/share/php/smarty </tt></td></tr>
   </table>
+  If you&quot;re installing on CentOS then you will also need the `php-pecl-json` package.
 
 5. Make sure that the `templates_c` directory is writeable by the web server, e.g.
 
