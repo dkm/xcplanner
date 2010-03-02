@@ -81,7 +81,7 @@ var leagues = {
 			circuitSize: 3000.0,
 		},
 	},
-	"Leonardo / OLC / XContest": {
+	"Leonardo / OLC": {
 		olc2: {
 			description: "Free flight",
 			multiplier: 1.5,
@@ -149,6 +149,33 @@ var leagues = {
 			multiplier: 1.25,
 			n: 2,
 			circuitSize: 400.0,
+		},
+	},
+	"XContest": {
+		xc2: {
+			description: "Free flight",
+			n: 2,
+		},
+		xc3: {
+			description: "Free flight via a turnpoint",
+			n: 3,
+		},
+		xc4: {
+			description: "Free flight via 2 turnpoints",
+			n: 4,
+		},
+		xc5: {
+			description: "Free flight via 3 turnpoints",
+			markerColors: olc5MarkerColors,
+			n: 5,
+			score: XCScoreXC,
+		},
+		xc3c: {
+			circuit: true,
+			description: "Flat or FAI triangle",
+			markerColors: triangleMarkerColors,
+			n: 3,
+			score: XCScoreTriangleXC,
 		},
 	},
 };
@@ -530,14 +557,14 @@ function XCScoreOutAndReturnUKXCL(flight) {
 	return flight;
 }
 
-function XCScoreOLC(flight) {
+function XCScoreFivePointFlight(flight, multipliers) {
 	var freeFlight = Object.clone(flight);
 	freeFlight.circuit = false;
 	freeFlight.color = COLOR.good;
 	freeFlight.description = flightType.description;
 	freeFlight.distance = freeFlight.totalDistance;
-	freeFlight.multiplier = flightType.multiplier;
-	freeFlight.score = freeFlight.totalDistance * flightType.multiplier / 1000.0;
+	freeFlight.multiplier = multipliers.freeFlight;
+	freeFlight.score = freeFlight.totalDistance * freeFlight.multiplier / 1000.0;
 	freeFlight.circuitCenter = turnpointMarkers[0];
 	freeFlight.circuitSize = 0.2 * triangleDistance;
 	freeFlight.circuitTarget = turnpointMarkers[4];
@@ -558,11 +585,11 @@ function XCScoreOLC(flight) {
 	if (triangleDistances.min() / triangleDistance < 0.28) {
 		triangleFlight.color = COLOR.better;
 		triangleFlight.description = "Flat triangle";
-		triangleFlight.multiplier = 1.75;
+		triangleFlight.multiplier = multipliers.flatTriangle;
 	} else {
 		triangleFlight.color = COLOR.best;
 		triangleFlight.description = "FAI triangle";
-		triangleFlight.multiplier = 2.0;
+		triangleFlight.multiplier = multipliers.faiTriangle;
 	}
 	triangleFlight.score = triangleFlight.distance * triangleFlight.multiplier / 1000.0;
 	if (freeFlight.score > triangleFlight.score) {
@@ -570,6 +597,14 @@ function XCScoreOLC(flight) {
 	} else {
 		return triangleFlight;
 	}
+}
+
+function XCScoreOLC(flight) {
+	return XCScoreFivePointFlight(flight, {freeFlight: 1.5, flatTriangle: 1.75, faiTriangle: 2.0});
+}
+
+function XCScoreXC(flight) {
+	return XCScoreFivePointFlight(flight, {freeFlight: 1.0, flatTriangle: 1.2, faiTriangle: 1.4});
 }
 
 function XCScoreQuadrilateralCFD(flight) {
@@ -618,6 +653,10 @@ function XCScoreTriangleCFD(flight) {
 
 function XCScoreTriangleOLC(flight) {
 	return XCScoreTriangle(flight, {description: "Flat triangle", multiplier: 1.75}, {description: "FAI triangle", multiplier: 2.0}, 0.2 * flight.totalDistance);
+}
+
+function XCScoreTriangleXC(flight) {
+	return XCScoreTriangle(flight, {description: "Flat triangle", multiplier: 1.2}, {description: "FAI triangle", multiplier: 1.4}, 0.2 * flight.totalDistance);
 }
 
 function XCScoreTriangleUKXCL(flight) {
