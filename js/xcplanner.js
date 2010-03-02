@@ -377,7 +377,7 @@ function XCLoad() {
 	$H(distanceFormats).each(function(distanceFormatPair) {
 		$("distanceFormat").appendChild(new Element("option", {label: distanceFormatPair[0], value: distanceFormatPair[0]}).update(distanceFormatPair[0]));
 	});
-	$("distanceFormat").setValue("mi");
+	$("distanceFormat").setValue("km");
 	$H(elevationFormats).each(function(elevationFormatPair) {
 		$("elevationFormat").appendChild(new Element("option", {label: elevationFormatPair[0], value: elevationFormatPair[0]}).update(elevationFormatPair[0]));
 	});
