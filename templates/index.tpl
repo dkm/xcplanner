@@ -54,12 +54,10 @@
 					<td><label for="faiSectors">FAI triangle areas:</label></td>
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
 				</tr>
-{if $ELEVATION}
-				<tr>
+				<tr{if !$ELEVATION} style="display: none"{/if}>
 					<td><label for="elevation">Elevations:</label></td>
 					<td><input id="elevation" type="checkbox" onchange="XCToggleElevations();"/></td>
 				</tr>
-{/if}
 				<tr>
 					<td><label for="circuit">Closed circuit area:</label></td>
 					<td>
@@ -78,7 +76,7 @@
 					<td><label for="distanceUnit">Distance unit:</label></td>
 					<td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
-				<tr>
+				<tr{if !$ELEVATION} style="display: none"{/if}>
 					<td><label for="elevationUnit">Elevation unit:</label></td>
 					<td><select id="elevationFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
@@ -101,9 +99,6 @@
 			<input id="defaultFlightType" type="hidden" value="{$flightType|escape}"/>
 			<input id="defaultTurnpoints" type="hidden" value="{$turnpoints|escape}"/>
 			<input id="defaultStart" type="hidden" value="{$start|escape}"/>
-{if !$ELEVATION}
-			<input id="elevation" type="hidden" value=""/>
-{/if}
 		</div>
 		<div id="right">
 			<div id="map"></div>
