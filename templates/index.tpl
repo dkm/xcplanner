@@ -21,6 +21,7 @@
 			<input id="location" type="text" onkeypress="XCGoOnEnter(event);"/>
 			<input type="submit" onclick="XCGo();" value="Go" title="Center the map on this location"/>
 			<input type="submit" onclick="XCHere();" value="Reset" title="Place the turnpoints on the map" /><br/>
+			<input{if !$LEONARDO} style="display: none"{/if} type="submit" onclick="XCTakeoffs();" value="Takeoffs" title="Find takeoffs" /><br/>
 			<hr/>
 			<select name="flightType" id="flightType" onchange="XCUpdateFlightType();"></select><br/>
 			<hr/>

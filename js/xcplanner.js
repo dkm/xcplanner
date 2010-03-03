@@ -33,6 +33,8 @@ var flight = null;
 
 var geocoder = null;
 var map = null;
+var takeoffIcon = null;
+var takeoffMarkers = {};
 var defaultTurnpointLatLngs = [];
 var defaultStartLatLng = null;
 var turnpointMarkers = [];
@@ -427,6 +429,13 @@ function XCLoad() {
 	tileLayer.getOpacity = function() { return 0.75; }
 	corrTileLayerOverlay = new GTileLayerOverlay(tileLayer);
 	GEvent.addListener(map, "zoomend", XCUpdateRoute);
+	takeoffIcon = new GIcon(G_DEFAULT_ICON);
+	takeoffIcon.image = "http://maps.google.com/mapfiles/kml/pal2/icon13.png";
+	takeoffIcon.shadow = "http://maps.google.com/mapfiles/kml/pal2/icon13s.png";
+	takeoffIcon.iconSize = new GSize(32, 32);
+	takeoffIcon.iconAnchor = new GPoint(13, 24);
+	takeoffIcon.infoWindowAnchor = new GPoint(13, 24);
+	takeoffIcon.shadowSize = new GSize(32, 32);
 	if (bounds) {
 		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 		XCSetDefaultTurnpoints(false);
@@ -800,6 +809,32 @@ function XCUpdateElevations() {
 			XCUpdateMarkerElevation(-1)
 		}
 	}
+}
+
+function XCTakeoffs() {
+	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	new Ajax.Request("EXT_takeoff.php", {
+		method: "get",
+		onSuccess: function(response) {
+			var responseJSON = eval("(" + response.responseText + ")");
+			responseJSON.waypoints.each(function(waypoint) {
+				if (waypoint.type == 1000 && !takeoffMarkers[waypoint.id]) {
+					var marker = new GMarker(new GLatLng(waypoint.lat, waypoint.lon), {icon: takeoffIcon, title: waypoint.name});
+					GEvent.addListener(marker, "click", function() {
+						marker.openInfoWindowHtml("<p>" + waypoint.name + "</p>\n<a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Site information in Leonardo</a>");
+					});
+					map.addOverlay(marker);
+					takeoffMarkers[waypoint.id] = marker;
+				}
+			});
+		},
+		parameters: {
+			distance: 10,
+			lat: latLng.lat(),
+			lon: latLng.lng(),
+			op: "get_nearest",
+		},
+	});
 }
 
 function XCToggleElevations() {
