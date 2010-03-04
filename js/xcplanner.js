@@ -33,10 +33,10 @@ var flight = null;
 
 var geocoder = null;
 var map = null;
+var takeoffLatLng = null;
 var takeoffIcon = null;
 var takeoffMarkers = {};
 var takeoffDrag = null;
-var takeoffDragend = null;
 var defaultTurnpointLatLngs = [];
 var defaultStartLatLng = null;
 var turnpointMarkers = [];
@@ -814,7 +814,7 @@ function XCUpdateElevations() {
 }
 
 function XCLoadTakeoffs() {
-	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	takeoffLatLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
 	new Ajax.Request("EXT_takeoff.php", {
 		method: "get",
 		onSuccess: function(response) {
@@ -833,9 +833,9 @@ function XCLoadTakeoffs() {
 		},
 		parameters: {
 			distance: 50,
-			lat: latLng.lat(),
+			lat: takeoffLatLng.lat(),
 			limit: 200,
-			lon: latLng.lng(),
+			lon: takeoffLatLng.lng(),
 			op: "get_nearest",
 		},
 	});
@@ -843,6 +843,9 @@ function XCLoadTakeoffs() {
 
 function XCUpdateTakeoffs() {
 	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	if (!takeoffLatLng || latLng.distanceFrom(takeoffLatLng) > 25000.0) {
+		XCLoadTakeoffs();
+	}
 	$H(takeoffMarkers).each(function(pair) {
 		var marker = pair.value;
 		if (latLng.distanceFrom(marker.getLatLng()) < 10000.0) {
@@ -862,15 +865,10 @@ function XCToggleTakeoffs() {
 		GEvent.removeListener(takeoffDrag);
 		takeoffDrag = null;
 	}
-	if (takeoffDragend) {
-		GEvent.removeListener(takeoffDragend);
-		takeoffDragend = null;
-	}
 	if ($F("takeoffs")) {
 		var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
 		takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
-		takeoffDragend = GEvent.addListener(takeoffMarker, "dragend", function() { XCLoadTakeoffs(); });
-		XCLoadTakeoffs();
+		XCUpdateTakeoffs();
 	} else {
 		$H(takeoffMarkers).each(function(pair) { map.removeOverlay(pair.value); });
 	}
