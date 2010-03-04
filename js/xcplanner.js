@@ -822,8 +822,14 @@ function XCLoadTakeoffs() {
 			responseJSON.waypoints.each(function(waypoint) {
 				if (waypoint.type == 1000 && !takeoffMarkers[waypoint.id]) {
 					var marker = new GMarker(new GLatLng(waypoint.lat, waypoint.lon), {icon: takeoffIcon, title: waypoint.name});
+					var html = "<h3>" + waypoint.name + "</h3>";
+					html += "<ul>";
+					html += "<li><a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Site information</a></li>";
+					html += "<li><a href=\"http://www.paraglidingforum.com/leonardo/tracks/world/alltimes/brand:all,cat:0,class:all,xctype:all,club:all,pilot:0_0,takeoff:" + waypoint.id + "\" target=\"_new\">Flights from here</a></li>";
+					html += "</ul>";
+					html += "<p>Takeoff information courtesy of <a href=\"http:///www.paraglidingforum.com/leonardo/\">Leonardo</a></p>";
 					GEvent.addListener(marker, "click", function() {
-						marker.openInfoWindowHtml("<p>" + waypoint.name + "</p>\n<a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Leonardo site information</a>");
+						marker.openInfoWindowHtml(html);
 					});
 					marker.added = false;
 					takeoffMarkers[waypoint.id] = marker;
