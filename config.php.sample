@@ -9,7 +9,7 @@ $DEFAULT_FLIGHT_TYPE = "olc5";
 $DEFAULT_TURNPOINTS = null;
 $DEFAULT_START = null;
 $ELEVATION = false;
-$LEONARDO = true;
+$LEONARDO = false;
 $XCONTEST = false;
 $get_elevation = "get_elevation_srtm";
 
