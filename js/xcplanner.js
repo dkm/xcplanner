@@ -35,6 +35,8 @@ var geocoder = null;
 var map = null;
 var takeoffIcon = null;
 var takeoffMarkers = {};
+var takeoffDrag = null;
+var takeoffDragend = null;
 var defaultTurnpointLatLngs = [];
 var defaultStartLatLng = null;
 var turnpointMarkers = [];
@@ -811,7 +813,7 @@ function XCUpdateElevations() {
 	}
 }
 
-function XCTakeoffs() {
+function XCLoadTakeoffs() {
 	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
 	new Ajax.Request("EXT_takeoff.php", {
 		method: "get",
@@ -823,18 +825,55 @@ function XCTakeoffs() {
 					GEvent.addListener(marker, "click", function() {
 						marker.openInfoWindowHtml("<p>" + waypoint.name + "</p>\n<a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Site information in Leonardo</a>");
 					});
-					map.addOverlay(marker);
+					marker.added = false;
 					takeoffMarkers[waypoint.id] = marker;
 				}
 			});
+			XCUpdateTakeoffs();
 		},
 		parameters: {
-			distance: 10,
+			distance: 50,
 			lat: latLng.lat(),
+			limit: 200,
 			lon: latLng.lng(),
 			op: "get_nearest",
 		},
 	});
+}
+
+function XCUpdateTakeoffs() {
+	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	$H(takeoffMarkers).each(function(pair) {
+		var marker = pair.value;
+		if (latLng.distanceFrom(marker.getLatLng()) < 10000.0) {
+			if (!marker.added) {
+				map.addOverlay(marker);
+				marker.added = true;
+			}
+		} else if (marker.added) {
+			map.removeOverlay(marker);
+			marker.added = false;
+		}
+	});
+}
+
+function XCToggleTakeoffs() {
+	if (takeoffDrag) {
+		GEvent.removeListener(takeoffDrag);
+		takeoffDrag = null;
+	}
+	if (takeoffDragend) {
+		GEvent.removeListener(takeoffDragend);
+		takeoffDragend = null;
+	}
+	if ($F("takeoffs")) {
+		var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
+		takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
+		takeoffDragend = GEvent.addListener(takeoffMarker, "dragend", function() { XCLoadTakeoffs(); });
+		XCLoadTakeoffs();
+	} else {
+		$H(takeoffMarkers).each(function(pair) { map.removeOverlay(pair.value); });
+	}
 }
 
 function XCToggleElevations() {
@@ -917,6 +956,8 @@ function XCUpdateRoute() {
 		turnpoints.appendChild(XCMarkerToTR(marker, i));
 	});
 	$("turnpoints").replace(turnpoints);
+
+	XCUpdateTakeoffs();
 
 	// link
 	var pairs = [];

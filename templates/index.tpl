@@ -21,7 +21,6 @@
 			<input id="location" type="text" onkeypress="XCGoOnEnter(event);"/>
 			<input type="submit" onclick="XCGo();" value="Go" title="Center the map on this location"/>
 			<input type="submit" onclick="XCHere();" value="Reset" title="Place the turnpoints on the map" /><br/>
-			<input{if !$LEONARDO} style="display: none"{/if} type="submit" onclick="XCTakeoffs();" value="Takeoffs" title="Find takeoffs" /><br/>
 			<hr/>
 			<select name="flightType" id="flightType" onchange="XCUpdateFlightType();"></select><br/>
 			<hr/>
@@ -48,6 +47,10 @@
 				<tr{if !$XCONTEST} style="display: none"{/if}>
 					<td><label for="corr">XContest SkyWays:</label></td>
 					<td><input id="corr" type="checkbox" onchange="XCUpdateCorr();"/></td>
+				</tr>
+				<tr{if !$LEONARDO} style="display: none"{/if}>
+					<td><label for="takeoffs">Leonardo takeoffs:</label></td>
+					<td><input id="takeoffs" type="checkbox" onchange="XCToggleTakeoffs();"/></td>
 				</tr>
 				<tr>
 					<td><label for="faiSectors">FAI triangle areas:</label></td>
@@ -85,6 +88,7 @@
 			<p{if !$XCONTEST} style="display: none"{/if}>XContest Airspace and SkyWays data &copy; XContest 2008, 2009</p>
 			<p><a href="http://github.com/twpayne/xcplanner/">http://github.com/twpayne/xcplanner/</a></p>
 			<p>Thanks to:
+				Manolis Andreadakis &middot;
 				Victor Berchet &middot;
 				Petr Chromec &middot;
 				Alex Graf &middot;
