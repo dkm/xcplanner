@@ -7,6 +7,7 @@ XC Planner is a web application for planning cross country flights.  Notable fea
 * Support for many flight types including open distance, out-and-returns and triangles
 * Support for [XContest](http://www.xcontest.org/)&rsquo;s airspace and SkyWays maps
 * Display of waypoint elevations using [CIGAR-CSI](http://srtm.csi.cgiar.org/) data
+* Display of nearby takeoffs from [Leonardo](http://www.paraglidingforum.com/leonardo/)
 * Generation of GPX files for easy upload of your flight to your GPS for declared flights
 * Generation of links so you can share your flight planning with others
 * Built on [Google Maps](http://maps.google.com)
@@ -88,6 +89,10 @@ Note that `srtm-download` assumes that individual CGIAR-CSI tiles are 6000&times
 XC Planner can also use a USGS web service to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
 
 Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `config.php` to activate in the web interface.  Note that an HTTP request is made each time a user moves a turnpoint marker.  This can result in hundreds of HTTP requests which can put a significant load on your web server.  Think carefully before enabling this feature.
+
+### Leonardo takeoffs ###
+
+XC Planner can display takeoffs near the start turnpoint using data from Leonardo.  To enable this, set `$LEONARDO` to `true` in `config.php`.  XC Planner will do an AJAX request to `/leonardo/EXT_takeoff.php` to retreive takeoffs.  This URL is currently hard coded, to change it, edit the `XCLoadTakeoffs` in `js/xcplanner.js`.  All takeoffs within 10km of the start turnpoint are displayed, but upto 200 takeoffs in a 50km radius are downloaded.  XC Planner downloads more takeoffs every time the start moves by more than 25km.  For debugging purposes you can use the `EXT_takeoff.php` script to proxy requests to <http://www.paraglidingforum.com/leonardo/EXT_takeoff.php>.
 
 ### XContest airspace and SkyWays ###
 
