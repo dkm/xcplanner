@@ -48,6 +48,10 @@
 					<td><label for="corr">XContest SkyWays:</label></td>
 					<td><input id="corr" type="checkbox" onchange="XCUpdateCorr();"/></td>
 				</tr>
+				<tr{if !$LEONARDO} style="display: none"{/if}>
+					<td><label for="takeoffs">Leonardo takeoffs:</label></td>
+					<td><input id="takeoffs" type="checkbox" onchange="XCToggleTakeoffs();"/></td>
+				</tr>
 				<tr>
 					<td><label for="faiSectors">FAI triangle areas:</label></td>
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
@@ -84,6 +88,7 @@
 			<p{if !$XCONTEST} style="display: none"{/if}>XContest Airspace and SkyWays data &copy; XContest 2008, 2009</p>
 			<p><a href="http://github.com/twpayne/xcplanner/">http://github.com/twpayne/xcplanner/</a></p>
 			<p>Thanks to:
+				Manolis Andreadakis &middot;
 				Victor Berchet &middot;
 				Petr Chromec &middot;
 				Alex Graf &middot;

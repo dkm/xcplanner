@@ -33,6 +33,10 @@ var flight = null;
 
 var geocoder = null;
 var map = null;
+var takeoffLatLng = null;
+var takeoffIcon = null;
+var takeoffMarkers = {};
+var takeoffDrag = null;
 var defaultTurnpointLatLngs = [];
 var defaultStartLatLng = null;
 var turnpointMarkers = [];
@@ -427,6 +431,13 @@ function XCLoad() {
 	tileLayer.getOpacity = function() { return 0.75; }
 	corrTileLayerOverlay = new GTileLayerOverlay(tileLayer);
 	GEvent.addListener(map, "zoomend", XCUpdateRoute);
+	takeoffIcon = new GIcon(G_DEFAULT_ICON);
+	takeoffIcon.image = "http://maps.google.com/mapfiles/kml/pal2/icon13.png";
+	takeoffIcon.shadow = "http://maps.google.com/mapfiles/kml/pal2/icon13s.png";
+	takeoffIcon.iconSize = new GSize(32, 32);
+	takeoffIcon.iconAnchor = new GPoint(13, 24);
+	takeoffIcon.infoWindowAnchor = new GPoint(13, 24);
+	takeoffIcon.shadowSize = new GSize(32, 32);
 	if (bounds) {
 		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 		XCSetDefaultTurnpoints(false);
@@ -802,6 +813,67 @@ function XCUpdateElevations() {
 	}
 }
 
+function XCLoadTakeoffs() {
+	takeoffLatLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	new Ajax.Request("/leonardo/EXT_takeoff.php", {
+		method: "get",
+		onSuccess: function(response) {
+			var responseJSON = eval("(" + response.responseText + ")");
+			responseJSON.waypoints.each(function(waypoint) {
+				if (waypoint.type == 1000 && !takeoffMarkers[waypoint.id]) {
+					var marker = new GMarker(new GLatLng(waypoint.lat, waypoint.lon), {icon: takeoffIcon, title: waypoint.name});
+					GEvent.addListener(marker, "click", function() {
+						marker.openInfoWindowHtml("<p>" + waypoint.name + "</p>\n<a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Leonardo site information</a>");
+					});
+					marker.added = false;
+					takeoffMarkers[waypoint.id] = marker;
+				}
+			});
+			XCUpdateTakeoffs();
+		},
+		parameters: {
+			distance: 50,
+			lat: takeoffLatLng.lat(),
+			limit: 200,
+			lon: takeoffLatLng.lng(),
+			op: "get_nearest",
+		},
+	});
+}
+
+function XCUpdateTakeoffs() {
+	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	if (!takeoffLatLng || latLng.distanceFrom(takeoffLatLng) > 25000.0) {
+		XCLoadTakeoffs();
+	}
+	$H(takeoffMarkers).each(function(pair) {
+		var marker = pair.value;
+		if (latLng.distanceFrom(marker.getLatLng()) < 10000.0) {
+			if (!marker.added) {
+				map.addOverlay(marker);
+				marker.added = true;
+			}
+		} else if (marker.added) {
+			map.removeOverlay(marker);
+			marker.added = false;
+		}
+	});
+}
+
+function XCToggleTakeoffs() {
+	if (takeoffDrag) {
+		GEvent.removeListener(takeoffDrag);
+		takeoffDrag = null;
+	}
+	if ($F("takeoffs")) {
+		var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
+		takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
+		XCUpdateTakeoffs();
+	} else {
+		$H(takeoffMarkers).each(function(pair) { map.removeOverlay(pair.value); });
+	}
+}
+
 function XCToggleElevations() {
 	XCUpdateRoute();
 	XCUpdateElevations();
@@ -882,6 +954,8 @@ function XCUpdateRoute() {
 		turnpoints.appendChild(XCMarkerToTR(marker, i));
 	});
 	$("turnpoints").replace(turnpoints);
+
+	XCUpdateTakeoffs();
 
 	// link
 	var pairs = [];
