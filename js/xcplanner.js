@@ -815,7 +815,7 @@ function XCUpdateElevations() {
 
 function XCLoadTakeoffs() {
 	takeoffLatLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
-	new Ajax.Request("EXT_takeoff.php", {
+	new Ajax.Request("/leonardo/EXT_takeoff.php", {
 		method: "get",
 		onSuccess: function(response) {
 			var responseJSON = eval("(" + response.responseText + ")");
