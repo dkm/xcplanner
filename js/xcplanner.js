@@ -854,7 +854,7 @@ function XCUpdateTakeoffs() {
 	}
 	$H(takeoffMarkers).each(function(pair) {
 		var marker = pair.value;
-		if (latLng.distanceFrom(marker.getLatLng()) < 10000.0) {
+		if (latLng.distanceFrom(marker.getLatLng()) < 25000.0) {
 			if (!marker.added) {
 				map.addOverlay(marker);
 				marker.added = true;
