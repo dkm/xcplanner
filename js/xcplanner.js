@@ -964,12 +964,12 @@ function XCUpdateRoute() {
 	var turnpoints = [];
 	turnpointMarkers.each(function(marker) {
 		var latLng = marker.getLatLng();
-		turnpoints.push("[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
+		turnpoints.push("%5B" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "%5D");
 	});
-	pairs.push("turnpoints=[" + turnpoints.join(",") + "]");
+	pairs.push("turnpoints=%5B" + turnpoints.join(",") + "%5D");
 	if (startMarker) {
 		var latLng = startMarker.getLatLng();
-		pairs.push("start=[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
+		pairs.push("start=%5B" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "%5D");
 	}
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
