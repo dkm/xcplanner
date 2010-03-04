@@ -823,7 +823,7 @@ function XCLoadTakeoffs() {
 				if (waypoint.type == 1000 && !takeoffMarkers[waypoint.id]) {
 					var marker = new GMarker(new GLatLng(waypoint.lat, waypoint.lon), {icon: takeoffIcon, title: waypoint.name});
 					GEvent.addListener(marker, "click", function() {
-						marker.openInfoWindowHtml("<p>" + waypoint.name + "</p>\n<a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Site information in Leonardo</a>");
+						marker.openInfoWindowHtml("<p>" + waypoint.name + "</p>\n<a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Leonardo site information</a>");
 					});
 					marker.added = false;
 					takeoffMarkers[waypoint.id] = marker;
