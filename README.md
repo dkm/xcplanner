@@ -28,7 +28,6 @@ Basic Installation
 2. Copy `config.php.sample` to `config.php`.
 
 3. Get a [Google Maps API key](http://code.google.com/apis/maps/signup.html) for your website and set `$GOOGLE_MAPS_API_KEY` in `config.php`.  The default key distributed with XC Planner is for <http://localhost/>.
-<<<<<<< HEAD
 
 4. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions:
   <table>
@@ -42,21 +41,6 @@ Basic Installation
 
 		chown apache:apache templates_c
 
-=======
-
-4. Install the [Smarty](http://www.smarty.net/) PHP template library and set `$SMARTY_DIR` in `config.php` to point to the directory containing `Smarty.class.php`.  Packages for Smarty are available in most Linux distributions:
-  <table>
-	<tr><th> Distribution </th><th>     Package name      </th><th><tt> $SMARTY_DIR           </tt></th></tr>
-	<tr><td> RedHat       </td><td><tt> php-Smarty   </tt></td><td><tt> /usr/share/php/Smarty </tt></td></tr>
-	<tr><td> Debian       </td><td><tt> smarty       </tt></td><td><tt> /usr/share/php/smarty </tt></td></tr>
-  </table>
-  If you're installing on RedHat then you will also need the `php-pecl-json` package.
-
-5. Make sure that the `templates_c` directory is writeable by the web server, e.g.
-
-		chown apache:apache templates_c
-
->>>>>>> 954de15e547a811277d1e28b19888a31b309aeca
 6. Point your web browser at <http://localhost/xcplanner/>.
 
 
@@ -105,13 +89,10 @@ Note that `srtm-download` assumes that individual CGIAR-CSI tiles are 6000&times
 XC Planner can also use a USGS web service to retrieve elevation data if the SRTM tiles are not available.  Set `$get_elevation` in `config.php` to `get_elevation_usgs` to enable it.  However, this is not recommended because it is very slow.
 
 Once you have downloaded the elevation data, set `$ELEVATION` to `true` in `config.php` to activate in the web interface.  Note that an HTTP request is made each time a user moves a turnpoint marker.  This can result in hundreds of HTTP requests which can put a significant load on your web server.  Think carefully before enabling this feature.
-<<<<<<< HEAD
-=======
 
 ### Leonardo takeoffs ###
 
 XC Planner can display takeoffs near the start turnpoint using data from Leonardo.  To enable this, set `$LEONARDO` to `true` in `config.php`.  XC Planner will do an AJAX request to `/leonardo/EXT_takeoff.php` to retreive takeoffs.  This URL is currently hard coded, to change it, edit the `XCLoadTakeoffs` in `js/xcplanner.js`.  All takeoffs within 10km of the start turnpoint are displayed, but upto 200 takeoffs in a 50km radius are downloaded.  XC Planner downloads more takeoffs every time the start moves by more than 25km.  For debugging purposes you can use the `EXT_takeoff.php` script to proxy requests to <http://www.paraglidingforum.com/leonardo/EXT_takeoff.php>.
->>>>>>> 954de15e547a811277d1e28b19888a31b309aeca
 
 ### XContest airspace and SkyWays ###
 
