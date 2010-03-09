@@ -22,7 +22,7 @@ var COLOR = {
 	invalid: "#ff0000",
 	marker: "#ff00ff",
 	circuit: "#ffff00",
-	faiSectors: ["#00ff00", "#0000ff", "#ff0000"],
+	faiSectors: ["#00ff00", "#0000ff", "#ff0000"]
 };
 
 var triangleMarkerColors = COLOR.faiSectors;
@@ -33,6 +33,10 @@ var flight = null;
 
 var geocoder = null;
 var map = null;
+var takeoffLatLng = null;
+var takeoffIcon = null;
+var takeoffMarkers = {};
+var takeoffDrag = null;
 var defaultTurnpointLatLngs = [];
 var defaultStartLatLng = null;
 var turnpointMarkers = [];
@@ -47,15 +51,15 @@ var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
 		cfd2: {
 			description: "Distance libre",
-			n: 2,
+			n: 2
 		},
 		cfd3: {
 			description: "Distance libre (1 point)",
-			n: 3,
+			n: 3
 		},
 		cfd4: {
 			description: "Distance libre (2 points)",
-			n: 4,
+			n: 4
 		},
 		cfd2c: {
 			circuit: true,
@@ -63,7 +67,7 @@ var leagues = {
 			multiplier: 1.2,
 			n: 2,
 			score: XCScoreOutAndReturn,
-			circuitSize: 3000.0,
+			circuitSize: 3000.0
 		},
 		cfd3c: {
 			circuit: true,
@@ -71,70 +75,70 @@ var leagues = {
 			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleCFD,
-			circuitSize: 3000.0,
+			circuitSize: 3000.0
 		},
 		cfd4c: {
 			circuit: true,
 			description: "Quadrilat\u00e8re",
 			n: 4,
 			score: XCScoreQuadrilateralCFD,
-			circuitSize: 3000.0,
-		},
+			circuitSize: 3000.0
+		}
 	},
 	"Leonardo / OLC": {
 		olc2: {
 			description: "Free flight",
 			multiplier: 1.5,
-			n: 2,
+			n: 2
 		},
 		olc3: {
 			description: "Free flight via a turnpoint",
 			multiplier: 1.5,
-			n: 3,
+			n: 3
 		},
 		olc4: {
 			description: "Free flight via 2 turnpoints",
 			multiplier: 1.5,
-			n: 4,
+			n: 4
 		},
 		olc5: {
 			description: "Free flight via 3 turnpoints",
 			markerColors: olc5MarkerColors,
 			multiplier: 1.5,
 			n: 5,
-			score: XCScoreOLC,
+			score: XCScoreOLC
 		},
 		olc3c: {
 			circuit: true,
 			description: "Flat or FAI triangle",
 			markerColors: triangleMarkerColors,
 			n: 3,
-			score: XCScoreTriangleOLC,
-		},
+			score: XCScoreTriangleOLC
+		}
 	},
 	"UK National XC League": {
 		ukxcl2: {
 			description: "Open distance",
-			n: 2,
+			n: 2
 		},
 		ukxcl3: {
 			description: "Turnpoint flight",
-			n: 3,
+			n: 3
 		},
 		ukxcl4: {
 			description: "Turnpoint flight (2 turnpoints)",
-			n: 4,
+			n: 4
 		},
 		ukxcl5: {
 			description: "Turnpoint flight (3 turnpoints)",
-			n: 5,
+			n: 5
 		},
 		ukxcl2c: {
 			circuit: true,
 			description: "Out and return",
 			n: 2,
 			score: XCScoreOutAndReturnUKXCL,
-			circuitSize: 400.0,
+			circuitSize: 400.0
 		},
 		ukxcl3c: {
 			circuit: true,
@@ -142,42 +146,42 @@ var leagues = {
 			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleUKXCL,
-			circuitSize: 400.0,
+			circuitSize: 400.0
 		},
 		ukxcl2d: {
 			description: "Flight to goal",
 			multiplier: 1.25,
 			n: 2,
-			circuitSize: 400.0,
-		},
+			circuitSize: 400.0
+		}
 	},
 	"XContest": {
 		xc2: {
 			description: "Free flight",
-			n: 2,
+			n: 2
 		},
 		xc3: {
 			description: "Free flight via a turnpoint",
-			n: 3,
+			n: 3
 		},
 		xc4: {
 			description: "Free flight via 2 turnpoints",
-			n: 4,
+			n: 4
 		},
 		xc5: {
 			description: "Free flight via 3 turnpoints",
 			markerColors: olc5MarkerColors,
 			n: 5,
-			score: XCScoreXC,
+			score: XCScoreXC
 		},
 		xc3c: {
 			circuit: true,
 			description: "Flat or FAI triangle",
 			markerColors: triangleMarkerColors,
 			n: 3,
-			score: XCScoreTriangleXC,
-		},
-	},
+			score: XCScoreTriangleXC
+		}
+	}
 };
 
 var coordFormats = {
@@ -185,18 +189,18 @@ var coordFormats = {
 	dm: "dd\u00b0 mm.mmm\u2032",
 	dms: "dd\u00b0 mm\u2032 ss\u2033",
 	utm: "UTM",
-	os: "OS grid",
+	os: "OS grid"
 };
 
 var elevationFormats = {
 	m: function(m) { return m.toString() + " m"; },
-	feet: function(m) { return (m * 3.2808399).toFixed(0) + " ft"; },
+	feet: function(m) { return (m * 3.2808399).toFixed(0) + " ft"; }
 }
 
 var distanceFormats = {
 	km: function(m) { return (m / 1000.0).toFixed(2) + " km"; },
 	miles: function(m) { return (m / 1609.0).toFixed(2) + " mi"; },
-	nm: function(m) { return (m / 1852.0).toFixed(2) + " nm"; },
+	nm: function(m) { return (m / 1852.0).toFixed(2) + " nm"; }
 }
 
 function sum(enumerable) {
@@ -427,6 +431,13 @@ function XCLoad() {
 	tileLayer.getOpacity = function() { return 0.75; }
 	corrTileLayerOverlay = new GTileLayerOverlay(tileLayer);
 	GEvent.addListener(map, "zoomend", XCUpdateRoute);
+	takeoffIcon = new GIcon(G_DEFAULT_ICON);
+	takeoffIcon.image = "http://maps.google.com/mapfiles/kml/pal2/icon13.png";
+	takeoffIcon.shadow = "http://maps.google.com/mapfiles/kml/pal2/icon13s.png";
+	takeoffIcon.iconSize = new GSize(32, 32);
+	takeoffIcon.iconAnchor = new GPoint(13, 24);
+	takeoffIcon.infoWindowAnchor = new GPoint(13, 24);
+	takeoffIcon.shadowSize = new GSize(32, 32);
 	if (bounds) {
 		map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
 		XCSetDefaultTurnpoints(false);
@@ -700,8 +711,8 @@ function XCUpdateMarkerElevation(i) {
 			parameters: {
 				lat: latLng.lat(),
 				lng: latLng.lng(),
-				rev: ++rev,
-			},
+				rev: ++rev
+			}
 		});
 	}
 }
@@ -802,6 +813,73 @@ function XCUpdateElevations() {
 	}
 }
 
+function XCLoadTakeoffs() {
+	takeoffLatLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	new Ajax.Request("/leonardo/EXT_takeoff.php", {
+		method: "get",
+		onSuccess: function(response) {
+			var responseJSON = eval("(" + response.responseText + ")");
+			responseJSON.waypoints.each(function(waypoint) {
+				if (waypoint.type == 1000 && !takeoffMarkers[waypoint.id]) {
+					var marker = new GMarker(new GLatLng(waypoint.lat, waypoint.lon), {icon: takeoffIcon, title: waypoint.name});
+					var html = "<h3>" + waypoint.name + "</h3>";
+					html += "<ul>";
+					html += "<li><a href=\"http://www.paraglidingforum.com/leonardo/takeoff/" + waypoint.id + "\" target=\"_new\">Site information</a></li>";
+					html += "<li><a href=\"http://www.paraglidingforum.com/leonardo/tracks/world/alltimes/brand:all,cat:0,class:all,xctype:all,club:all,pilot:0_0,takeoff:" + waypoint.id + "\" target=\"_new\">Flights from here</a></li>";
+					html += "</ul>";
+					html += "<p>Takeoff information courtesy of <a href=\"http:///www.paraglidingforum.com/leonardo/\">Leonardo</a></p>";
+					GEvent.addListener(marker, "click", function() {
+						marker.openInfoWindowHtml(html);
+					});
+					marker.added = false;
+					takeoffMarkers[waypoint.id] = marker;
+				}
+			});
+			XCUpdateTakeoffs();
+		},
+		parameters: {
+			distance: 50,
+			lat: takeoffLatLng.lat(),
+			limit: 200,
+			lon: takeoffLatLng.lng(),
+			op: "get_nearest"
+		}
+	});
+}
+
+function XCUpdateTakeoffs() {
+	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+	if (!takeoffLatLng || latLng.distanceFrom(takeoffLatLng) > 25000.0) {
+		XCLoadTakeoffs();
+	}
+	$H(takeoffMarkers).each(function(pair) {
+		var marker = pair.value;
+		if (latLng.distanceFrom(marker.getLatLng()) < 25000.0) {
+			if (!marker.added) {
+				map.addOverlay(marker);
+				marker.added = true;
+			}
+		} else if (marker.added) {
+			map.removeOverlay(marker);
+			marker.added = false;
+		}
+	});
+}
+
+function XCToggleTakeoffs() {
+	if (takeoffDrag) {
+		GEvent.removeListener(takeoffDrag);
+		takeoffDrag = null;
+	}
+	if ($F("takeoffs")) {
+		var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
+		takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
+		XCUpdateTakeoffs();
+	} else {
+		$H(takeoffMarkers).each(function(pair) { map.removeOverlay(pair.value); });
+	}
+}
+
 function XCToggleElevations() {
 	XCUpdateRoute();
 	XCUpdateElevations();
@@ -883,6 +961,8 @@ function XCUpdateRoute() {
 	});
 	$("turnpoints").replace(turnpoints);
 
+	XCUpdateTakeoffs();
+
 	// link
 	var pairs = [];
 	pairs.push("location=" + escape($F("location")));
@@ -890,12 +970,12 @@ function XCUpdateRoute() {
 	var turnpoints = [];
 	turnpointMarkers.each(function(marker) {
 		var latLng = marker.getLatLng();
-		turnpoints.push("[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
+		turnpoints.push("%5B" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "%5D");
 	});
-	pairs.push("turnpoints=[" + turnpoints.join(",") + "]");
+	pairs.push("turnpoints=%5B" + turnpoints.join(",") + "%5D");
 	if (startMarker) {
 		var latLng = startMarker.getLatLng();
-		pairs.push("start=[" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "]");
+		pairs.push("start=%5B" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "%5D");
 	}
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
@@ -905,7 +985,7 @@ function XCUpdateRoute() {
 		turnpoints.push({
 			name: "TP0",
 			lat: flight.circuitCenter.getLatLng().lat(),
-			lng: flight.circuitCenter.getLatLng().lng(),
+			lng: flight.circuitCenter.getLatLng().lng()
 		});
 	}
 	turnpointMarkers.each(function(marker, i) {
@@ -913,7 +993,7 @@ function XCUpdateRoute() {
 		turnpoints.push({
 			name: "TP" + (i + 1).toString(),
 			lat: latLng.lat(),
-			lng: latLng.lng(),
+			lng: latLng.lng()
 		});
 	});
 	var route = {
@@ -921,7 +1001,7 @@ function XCUpdateRoute() {
 		description: flight.description,
 		distance: formatDistance(flight.distance),
 		"location": $F("location"),
-		turnpoints: turnpoints,
+		turnpoints: turnpoints
 	};
 	$("gpx").writeAttribute({href: "download.php?format=gpx&route=" + escape(JSON.stringify(route))});
 }

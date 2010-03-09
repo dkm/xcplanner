@@ -6,6 +6,7 @@ require_once("$SMARTY_DIR/Smarty.class.php");
 $smarty = new Smarty;
 $smarty->assign("GOOGLE_MAPS_API_KEY", $GOOGLE_MAPS_API_KEY);
 $smarty->assign("ELEVATION", $ELEVATION);
+$smarty->assign("LEONARDO", $LEONARDO);
 $smarty->assign("XCONTEST", $XCONTEST);
 $smarty->assign("location", isset($_GET["location"]) ? $_GET["location"] : $DEFAULT_LOCATION);
 $smarty->assign("flightType", isset($_GET["flightType"]) ? $_GET["flightType"] : $DEFAULT_FLIGHT_TYPE);
