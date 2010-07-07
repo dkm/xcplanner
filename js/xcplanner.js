@@ -848,35 +848,38 @@ function XCLoadTakeoffs() {
 }
 
 function XCUpdateTakeoffs() {
-	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
-	if (!takeoffLatLng || latLng.distanceFrom(takeoffLatLng) > 25000.0) {
-		XCLoadTakeoffs();
-	}
-	$H(takeoffMarkers).each(function(pair) {
-		var marker = pair.value;
-		if (latLng.distanceFrom(marker.getLatLng()) < 25000.0) {
-			if (!marker.added) {
-				map.addOverlay(marker);
-				marker.added = true;
-			}
-		} else if (marker.added) {
+	if ($F("takeoffs")) {
+		var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+		if (!takeoffLatLng || latLng.distanceFrom(takeoffLatLng) > 25000.0) {
+			XCLoadTakeoffs();
+		} else {
+			$H(takeoffMarkers).each(function(pair) {
+				var marker = pair.value;
+				if (latLng.distanceFrom(marker.getLatLng()) < 25000.0) {
+					if (!marker.added) {
+						map.addOverlay(marker);
+						marker.added = true;
+					}
+				} else if (marker.added) {
+					map.removeOverlay(marker);
+					marker.added = false;
+				}
+			});
+		}
+		if (!takeoffDrag) {
+			var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
+			takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
+		}
+	} else {
+		$H(takeoffMarkers).each(function(pair) {
+			var marker = pair.value;
 			map.removeOverlay(marker);
 			marker.added = false;
+		});
+		if (takeoffDrag) {
+			GEvent.removeListener(takeoffDrag);
+			takeoffDrag = null;
 		}
-	});
-}
-
-function XCToggleTakeoffs() {
-	if (takeoffDrag) {
-		GEvent.removeListener(takeoffDrag);
-		takeoffDrag = null;
-	}
-	if ($F("takeoffs")) {
-		var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
-		takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
-		XCUpdateTakeoffs();
-	} else {
-		$H(takeoffMarkers).each(function(pair) { map.removeOverlay(pair.value); });
 	}
 }
 

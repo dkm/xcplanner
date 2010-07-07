@@ -50,7 +50,7 @@
 				</tr>
 				<tr{if !$LEONARDO} style="display: none"{/if}>
 					<td><label for="takeoffs">Leonardo takeoffs:</label></td>
-					<td><input id="takeoffs" type="checkbox" onchange="XCToggleTakeoffs();"/></td>
+					<td><input id="takeoffs" type="checkbox" onchange="XCUpdateTakeoffs();"/></td>
 				</tr>
 				<tr>
 					<td><label for="faiSectors">FAI triangle areas:</label></td>
