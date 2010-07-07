@@ -21,6 +21,7 @@ body {
 #left {
 	width: 280px;
 	float: left;
+	overflow: scroll;
 }
 
 #right {
