@@ -982,7 +982,7 @@ function XCUpdateRoute() {
 	}
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
-	// gpx
+	// gpx and kml
 	var turnpoints = []
 	if (flight.circuitCenter && !turnpointMarkers.include(flight.circuitCenter)) {
 		turnpoints.push({
@@ -1007,6 +1007,7 @@ function XCUpdateRoute() {
 		turnpoints: turnpoints,
 	};
 	$("gpx").writeAttribute({href: "download.php?format=gpx&route=" + escape(JSON.stringify(route))});
+	$("kml").writeAttribute({href: "download.php?format=kml&route=" + escape(JSON.stringify(route))});
 }
 
 function XCUnload() {

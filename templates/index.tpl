@@ -37,6 +37,7 @@
 			<b>Save:</b>
 			<a id="link">link</a>
 			<a id="gpx">gpx</a>
+			<a id="kml">kml</a>
 			<hr/>
 			<b>Preferences:</b>
 			<table>

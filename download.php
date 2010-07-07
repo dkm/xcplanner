@@ -30,6 +30,16 @@ if ($_GET["format"] == "gpx") {
 		header("Content-Disposition: inline; filename=\"$filename.gpx\"");
 		$smarty->display("download_gpx.tpl");
 	}
+} elseif ($_GET["format"] == "kml") {
+	if ($DEBUG) {
+		print "<pre>";
+		print htmlentities($smarty->fetch("download_kml.tpl"));
+		print "</pre>";
+	} else {
+		header("Content-Type: application/octet-stream");
+		header("Content-Disposition: inline; filename=\"$filename.kml\"");
+		$smarty->display("download_kml.tpl");
+	}
 }
 
 ?>
