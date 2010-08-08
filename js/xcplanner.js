@@ -22,7 +22,7 @@ var COLOR = {
 	invalid: "#ff0000",
 	marker: "#ff00ff",
 	circuit: "#ffff00",
-	faiSectors: ["#00ff00", "#0000ff", "#ff0000"],
+	faiSectors: ["#00ff00", "#0000ff", "#ff0000"]
 };
 
 var triangleMarkerColors = COLOR.faiSectors;
@@ -43,7 +43,7 @@ var turnpointMarkers = [];
 var overlays = null;
 var startMarker = null;
 var rev = 0;
-var elevationCache = {}
+var elevationCache = {};
 var airspaceTileLayerOverlay = null;
 var corrTileLayerOverlay = null;
 
@@ -51,15 +51,15 @@ var leagues = {
 	"Coupe F\u00e9d\u00e9rale de Distance": {
 		cfd2: {
 			description: "Distance libre",
-			n: 2,
+			n: 2
 		},
 		cfd3: {
 			description: "Distance libre (1 point)",
-			n: 3,
+			n: 3
 		},
 		cfd4: {
 			description: "Distance libre (2 points)",
-			n: 4,
+			n: 4
 		},
 		cfd2c: {
 			circuit: true,
@@ -67,7 +67,7 @@ var leagues = {
 			multiplier: 1.2,
 			n: 2,
 			score: XCScoreOutAndReturn,
-			circuitSize: 3000.0,
+			circuitSize: 3000.0
 		},
 		cfd3c: {
 			circuit: true,
@@ -75,70 +75,70 @@ var leagues = {
 			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleCFD,
-			circuitSize: 3000.0,
+			circuitSize: 3000.0
 		},
 		cfd4c: {
 			circuit: true,
 			description: "Quadrilat\u00e8re",
 			n: 4,
 			score: XCScoreQuadrilateralCFD,
-			circuitSize: 3000.0,
-		},
+			circuitSize: 3000.0
+		}
 	},
 	"Leonardo / OLC": {
 		olc2: {
 			description: "Free flight",
 			multiplier: 1.5,
-			n: 2,
+			n: 2
 		},
 		olc3: {
 			description: "Free flight via a turnpoint",
 			multiplier: 1.5,
-			n: 3,
+			n: 3
 		},
 		olc4: {
 			description: "Free flight via 2 turnpoints",
 			multiplier: 1.5,
-			n: 4,
+			n: 4
 		},
 		olc5: {
 			description: "Free flight via 3 turnpoints",
 			markerColors: olc5MarkerColors,
 			multiplier: 1.5,
 			n: 5,
-			score: XCScoreOLC,
+			score: XCScoreOLC
 		},
 		olc3c: {
 			circuit: true,
 			description: "Flat or FAI triangle",
 			markerColors: triangleMarkerColors,
 			n: 3,
-			score: XCScoreTriangleOLC,
-		},
+			score: XCScoreTriangleOLC
+		}
 	},
 	"UK National XC League": {
 		ukxcl2: {
 			description: "Open distance",
-			n: 2,
+			n: 2
 		},
 		ukxcl3: {
 			description: "Turnpoint flight",
-			n: 3,
+			n: 3
 		},
 		ukxcl4: {
 			description: "Turnpoint flight (2 turnpoints)",
-			n: 4,
+			n: 4
 		},
 		ukxcl5: {
 			description: "Turnpoint flight (3 turnpoints)",
-			n: 5,
+			n: 5
 		},
 		ukxcl2c: {
 			circuit: true,
 			description: "Out and return",
 			n: 2,
 			score: XCScoreOutAndReturnUKXCL,
-			circuitSize: 400.0,
+			circuitSize: 400.0
 		},
 		ukxcl3c: {
 			circuit: true,
@@ -146,42 +146,42 @@ var leagues = {
 			markerColors: triangleMarkerColors,
 			n: 3,
 			score: XCScoreTriangleUKXCL,
-			circuitSize: 400.0,
+			circuitSize: 400.0
 		},
 		ukxcl2d: {
 			description: "Flight to goal",
 			multiplier: 1.25,
 			n: 2,
-			circuitSize: 400.0,
-		},
+			circuitSize: 400.0
+		}
 	},
 	"XContest": {
 		xc2: {
 			description: "Free flight",
-			n: 2,
+			n: 2
 		},
 		xc3: {
 			description: "Free flight via a turnpoint",
-			n: 3,
+			n: 3
 		},
 		xc4: {
 			description: "Free flight via 2 turnpoints",
-			n: 4,
+			n: 4
 		},
 		xc5: {
 			description: "Free flight via 3 turnpoints",
 			markerColors: olc5MarkerColors,
 			n: 5,
-			score: XCScoreXC,
+			score: XCScoreXC
 		},
 		xc3c: {
 			circuit: true,
 			description: "Flat or FAI triangle",
 			markerColors: triangleMarkerColors,
 			n: 3,
-			score: XCScoreTriangleXC,
-		},
-	},
+			score: XCScoreTriangleXC
+		}
+	}
 };
 
 var coordFormats = {
@@ -189,19 +189,19 @@ var coordFormats = {
 	dm: "dd\u00b0 mm.mmm\u2032",
 	dms: "dd\u00b0 mm\u2032 ss\u2033",
 	utm: "UTM",
-	os: "OS grid",
+	os: "OS grid"
 };
 
 var elevationFormats = {
 	m: function(m) { return m.toString() + " m"; },
-	feet: function(m) { return (m * 3.2808399).toFixed(0) + " ft"; },
-}
+	feet: function(m) { return (m * 3.2808399).toFixed(0) + " ft"; }
+};
 
 var distanceFormats = {
 	km: function(m) { return (m / 1000.0).toFixed(2) + " km"; },
 	miles: function(m) { return (m / 1609.0).toFixed(2) + " mi"; },
-	nm: function(m) { return (m / 1852.0).toFixed(2) + " nm"; },
-}
+	nm: function(m) { return (m / 1852.0).toFixed(2) + " nm"; }
+};
 
 function sum(enumerable) {
 	return enumerable.inject(0, function(a, x) { return a + x; });
@@ -246,16 +246,16 @@ function formatLatLng(latLng, tr) {
 			};
 		} else if (coordFormat == "dm") {
 			formatter = function(deg) {
-				var d = parseInt(deg);
+				var d = parseInt(deg, 10);
 				var min = 60 * (deg - d);
 				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
 				tr.appendChild(new Element("td", {align: "right"}).update(min.toFixed(3) + "\u2032"));
 			};
 		} else if (coordFormat == "dms") {
 			formatter = function(deg) {
-				var d = parseInt(deg);
+				var d = parseInt(deg, 10);
 				var min = 60 * (deg - d);
-				var m = parseInt(min);
+				var m = parseInt(min, 10);
 				var sec = 60 * (min - m);
 				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
 				tr.appendChild(new Element("td", {align: "right"}).update(m.toString() + "\u2032"));
@@ -280,7 +280,7 @@ function isConvex(pixels) {
 		prev = pixel;
 		return delta;
 	});
-	var prev = deltas[deltas.length - 1];
+	prev = deltas[deltas.length - 1];
 	var crossProducts = deltas.map(function(delta) {
 		crossProduct = delta.x * prev.y - delta.y * prev.x;
 		prev = delta;
@@ -293,7 +293,7 @@ function arrowhead(latLngs, length, phi) {
 	var pixels = latLngs.map(function(latLng) { return map.fromLatLngToContainerPixel(latLng); });
 	var delta = new GPoint(pixels[1].x - pixels[0].x, pixels[1].y - pixels[0].y);
 	var theta = Math.atan2(delta.y, delta.x);
-	var result = []
+	var result = [];
 	result.push(pixels[1]);
 	result.push(new GPoint(pixels[1].x - length * Math.cos(theta + phi), pixels[1].y - length * Math.sin(theta + phi)));
 	result.push(new GPoint(pixels[1].x - 0.5 * length * Math.cos(theta), pixels[1].y - 0.5 * length * Math.sin(theta)));
@@ -422,13 +422,13 @@ function XCLoad() {
 	copyright.addCopyright(new GCopyright("XContest", new GLatLngBounds(new GLatLng(-90, -180), new GLatLng(90, 180)), 0, "\u00a9 XContest"));
 	var tileLayer = new GTileLayer(copyright);
 	tileLayer.getTileUrl = function(tile, zoom) { return "http://maps.pgweb.cz/airspace/" + zoom.toString() + "/" + tile.x.toString() + "/" + tile.y.toString(); };
-	tileLayer.isPng = function() { return true; }
-	tileLayer.getOpacity = function() { return 0.75; }
+	tileLayer.isPng = function() { return true; };
+	tileLayer.getOpacity = function() { return 0.75; };
 	airspaceTileLayerOverlay = new GTileLayerOverlay(tileLayer);
-	var tileLayer = new GTileLayer(copyright);
+	tileLayer = new GTileLayer(copyright);
 	tileLayer.getTileUrl = function(tile, zoom) { return "http://maps.pgweb.cz/corr/" + zoom.toString() + "/" + tile.x.toString() + "/" + tile.y.toString(); };
-	tileLayer.isPng = function() { return true; }
-	tileLayer.getOpacity = function() { return 0.75; }
+	tileLayer.isPng = function() { return true; };
+	tileLayer.getOpacity = function() { return 0.75; };
 	corrTileLayerOverlay = new GTileLayerOverlay(tileLayer);
 	GEvent.addListener(map, "zoomend", XCUpdateRoute);
 	takeoffIcon = new GIcon(G_DEFAULT_ICON);
@@ -711,8 +711,8 @@ function XCUpdateMarkerElevation(i) {
 			parameters: {
 				lat: latLng.lat(),
 				lng: latLng.lng(),
-				rev: ++rev,
-			},
+				rev: ++rev
+			}
 		});
 	}
 }
@@ -808,7 +808,7 @@ function XCUpdateElevations() {
 	if ($F("elevation")) {
 		turnpointMarkers.each(function(marker, i) { XCUpdateMarkerElevation(i); });
 		if (startMarker) {
-			XCUpdateMarkerElevation(-1)
+			XCUpdateMarkerElevation(-1);
 		}
 	}
 }
@@ -842,8 +842,8 @@ function XCLoadTakeoffs() {
 			lat: takeoffLatLng.lat(),
 			limit: 200,
 			lon: takeoffLatLng.lng(),
-			op: "get_nearest",
-		},
+			op: "get_nearest"
+		}
 	});
 }
 
@@ -970,7 +970,7 @@ function XCUpdateRoute() {
 	var pairs = [];
 	pairs.push("location=" + escape($F("location")));
 	pairs.push("flightType=" + $F("flightType"));
-	var turnpoints = [];
+	turnpoints = [];
 	turnpointMarkers.each(function(marker) {
 		var latLng = marker.getLatLng();
 		turnpoints.push("%5B" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "%5D");
@@ -983,12 +983,12 @@ function XCUpdateRoute() {
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
 	// gpx and kml
-	var turnpoints = []
+	turnpoints = [];
 	if (flight.circuitCenter && !turnpointMarkers.include(flight.circuitCenter)) {
 		turnpoints.push({
 			name: "TP0",
 			lat: flight.circuitCenter.getLatLng().lat(),
-			lng: flight.circuitCenter.getLatLng().lng(),
+			lng: flight.circuitCenter.getLatLng().lng()
 		});
 	}
 	turnpointMarkers.each(function(marker, i) {
@@ -996,15 +996,15 @@ function XCUpdateRoute() {
 		turnpoints.push({
 			name: "TP" + (i + 1).toString(),
 			lat: latLng.lat(),
-			lng: latLng.lng(),
+			lng: latLng.lng()
 		});
 	});
-	var route = {
+	route = {
 		circuit: flightType.circuit,
 		description: flight.description,
 		distance: formatDistance(flight.distance),
 		"location": $F("location"),
-		turnpoints: turnpoints,
+		turnpoints: turnpoints
 	};
 	$("gpx").writeAttribute({href: "download.php?format=gpx&route=" + escape(JSON.stringify(route))});
 	$("kml").writeAttribute({href: "download.php?format=kml&route=" + escape(JSON.stringify(route))});
