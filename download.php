@@ -33,7 +33,7 @@ if ($_GET["format"] == "gpx") {
 		print htmlentities(view_render("download_kml.tpl", array('route' => $route)));
 		print "</pre>";
 	} else {
-		header("Content-Type: application/octet-stream");
+		header("Content-Type: application/vnd.google-earth.kml+xml kml;");
 		header("Content-Disposition: inline; filename=\"$filename.kml\"");
 		echo view_render("download_kml.tpl", array('route' => $route));
 	}
