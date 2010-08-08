@@ -13,7 +13,7 @@ if (get_magic_quotes_gpc()) {
 
 $route["turnpoints"] = json_decode($route["turnpoints"], true);
 foreach ($route["turnpoints"] as $key => $turnpoint) {
-	if (!$turnpoint["ele"]) {
+	if (!isset($turnpoint["ele"])) {
 		$route["turnpoints"][$key]["ele"] = $get_elevation($turnpoint["lat"], $turnpoint["lng"]);
 	}
 }
