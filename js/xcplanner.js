@@ -43,7 +43,7 @@ var turnpointMarkers = [];
 var overlays = null;
 var startMarker = null;
 var rev = 0;
-var elevationCache = {}
+var elevationCache = {};
 var airspaceTileLayerOverlay = null;
 var corrTileLayerOverlay = null;
 
@@ -195,13 +195,13 @@ var coordFormats = {
 var elevationFormats = {
 	m: function(m) { return m.toString() + " m"; },
 	feet: function(m) { return (m * 3.2808399).toFixed(0) + " ft"; }
-}
+};
 
 var distanceFormats = {
 	km: function(m) { return (m / 1000.0).toFixed(2) + " km"; },
 	miles: function(m) { return (m / 1609.0).toFixed(2) + " mi"; },
 	nm: function(m) { return (m / 1852.0).toFixed(2) + " nm"; }
-}
+};
 
 function sum(enumerable) {
 	return enumerable.inject(0, function(a, x) { return a + x; });
@@ -246,16 +246,16 @@ function formatLatLng(latLng, tr) {
 			};
 		} else if (coordFormat == "dm") {
 			formatter = function(deg) {
-				var d = parseInt(deg);
+				var d = parseInt(deg, 10);
 				var min = 60 * (deg - d);
 				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
 				tr.appendChild(new Element("td", {align: "right"}).update(min.toFixed(3) + "\u2032"));
 			};
 		} else if (coordFormat == "dms") {
 			formatter = function(deg) {
-				var d = parseInt(deg);
+				var d = parseInt(deg, 10);
 				var min = 60 * (deg - d);
-				var m = parseInt(min);
+				var m = parseInt(min, 10);
 				var sec = 60 * (min - m);
 				tr.appendChild(new Element("td", {align: "right"}).update(d.toString() + "\u00b0"));
 				tr.appendChild(new Element("td", {align: "right"}).update(m.toString() + "\u2032"));
@@ -280,7 +280,7 @@ function isConvex(pixels) {
 		prev = pixel;
 		return delta;
 	});
-	var prev = deltas[deltas.length - 1];
+	prev = deltas[deltas.length - 1];
 	var crossProducts = deltas.map(function(delta) {
 		crossProduct = delta.x * prev.y - delta.y * prev.x;
 		prev = delta;
@@ -293,7 +293,7 @@ function arrowhead(latLngs, length, phi) {
 	var pixels = latLngs.map(function(latLng) { return map.fromLatLngToContainerPixel(latLng); });
 	var delta = new GPoint(pixels[1].x - pixels[0].x, pixels[1].y - pixels[0].y);
 	var theta = Math.atan2(delta.y, delta.x);
-	var result = []
+	var result = [];
 	result.push(pixels[1]);
 	result.push(new GPoint(pixels[1].x - length * Math.cos(theta + phi), pixels[1].y - length * Math.sin(theta + phi)));
 	result.push(new GPoint(pixels[1].x - 0.5 * length * Math.cos(theta), pixels[1].y - 0.5 * length * Math.sin(theta)));
@@ -422,13 +422,13 @@ function XCLoad() {
 	copyright.addCopyright(new GCopyright("XContest", new GLatLngBounds(new GLatLng(-90, -180), new GLatLng(90, 180)), 0, "\u00a9 XContest"));
 	var tileLayer = new GTileLayer(copyright);
 	tileLayer.getTileUrl = function(tile, zoom) { return "http://maps.pgweb.cz/airspace/" + zoom.toString() + "/" + tile.x.toString() + "/" + tile.y.toString(); };
-	tileLayer.isPng = function() { return true; }
-	tileLayer.getOpacity = function() { return 0.75; }
+	tileLayer.isPng = function() { return true; };
+	tileLayer.getOpacity = function() { return 0.75; };
 	airspaceTileLayerOverlay = new GTileLayerOverlay(tileLayer);
-	var tileLayer = new GTileLayer(copyright);
+	tileLayer = new GTileLayer(copyright);
 	tileLayer.getTileUrl = function(tile, zoom) { return "http://maps.pgweb.cz/corr/" + zoom.toString() + "/" + tile.x.toString() + "/" + tile.y.toString(); };
-	tileLayer.isPng = function() { return true; }
-	tileLayer.getOpacity = function() { return 0.75; }
+	tileLayer.isPng = function() { return true; };
+	tileLayer.getOpacity = function() { return 0.75; };
 	corrTileLayerOverlay = new GTileLayerOverlay(tileLayer);
 	GEvent.addListener(map, "zoomend", XCUpdateRoute);
 	takeoffIcon = new GIcon(G_DEFAULT_ICON);
@@ -808,7 +808,7 @@ function XCUpdateElevations() {
 	if ($F("elevation")) {
 		turnpointMarkers.each(function(marker, i) { XCUpdateMarkerElevation(i); });
 		if (startMarker) {
-			XCUpdateMarkerElevation(-1)
+			XCUpdateMarkerElevation(-1);
 		}
 	}
 }
@@ -848,35 +848,38 @@ function XCLoadTakeoffs() {
 }
 
 function XCUpdateTakeoffs() {
-	var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
-	if (!takeoffLatLng || latLng.distanceFrom(takeoffLatLng) > 25000.0) {
-		XCLoadTakeoffs();
-	}
-	$H(takeoffMarkers).each(function(pair) {
-		var marker = pair.value;
-		if (latLng.distanceFrom(marker.getLatLng()) < 25000.0) {
-			if (!marker.added) {
-				map.addOverlay(marker);
-				marker.added = true;
-			}
-		} else if (marker.added) {
+	if ($F("takeoffs")) {
+		var latLng = startMarker ? startMarker.getLatLng() : turnpointMarkers[0].getLatLng();
+		if (!takeoffLatLng || latLng.distanceFrom(takeoffLatLng) > 10000.0) {
+			XCLoadTakeoffs();
+		} else {
+			$H(takeoffMarkers).each(function(pair) {
+				var marker = pair.value;
+				if (latLng.distanceFrom(marker.getLatLng()) < 10000.0) {
+					if (!marker.added) {
+						map.addOverlay(marker);
+						marker.added = true;
+					}
+				} else if (marker.added) {
+					map.removeOverlay(marker);
+					marker.added = false;
+				}
+			});
+		}
+		if (!takeoffDrag) {
+			var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
+			takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
+		}
+	} else {
+		$H(takeoffMarkers).each(function(pair) {
+			var marker = pair.value;
 			map.removeOverlay(marker);
 			marker.added = false;
+		});
+		if (takeoffDrag) {
+			GEvent.removeListener(takeoffDrag);
+			takeoffDrag = null;
 		}
-	});
-}
-
-function XCToggleTakeoffs() {
-	if (takeoffDrag) {
-		GEvent.removeListener(takeoffDrag);
-		takeoffDrag = null;
-	}
-	if ($F("takeoffs")) {
-		var takeoffMarker = startMarker ? startMarker : turnpointMarkers[0];
-		takeoffDrag = GEvent.addListener(takeoffMarker, "drag", function() { XCUpdateTakeoffs(); });
-		XCUpdateTakeoffs();
-	} else {
-		$H(takeoffMarkers).each(function(pair) { map.removeOverlay(pair.value); });
 	}
 }
 
@@ -967,7 +970,7 @@ function XCUpdateRoute() {
 	var pairs = [];
 	pairs.push("location=" + escape($F("location")));
 	pairs.push("flightType=" + $F("flightType"));
-	var turnpoints = [];
+	turnpoints = [];
 	turnpointMarkers.each(function(marker) {
 		var latLng = marker.getLatLng();
 		turnpoints.push("%5B" + latLng.lat().toFixed(5) + "," + latLng.lng().toFixed(5) + "%5D");
@@ -979,8 +982,8 @@ function XCUpdateRoute() {
 	}
 	$("link").writeAttribute({href: "?" + pairs.join("&")});
 
-	// gpx
-	var turnpoints = []
+	// gpx and kml
+	turnpoints = [];
 	if (flight.circuitCenter && !turnpointMarkers.include(flight.circuitCenter)) {
 		turnpoints.push({
 			name: "TP0",
@@ -996,7 +999,7 @@ function XCUpdateRoute() {
 			lng: latLng.lng()
 		});
 	});
-	var route = {
+	route = {
 		circuit: flightType.circuit,
 		description: flight.description,
 		distance: formatDistance(flight.distance),
@@ -1004,6 +1007,7 @@ function XCUpdateRoute() {
 		turnpoints: turnpoints
 	};
 	$("gpx").writeAttribute({href: "download.php?format=gpx&route=" + escape(JSON.stringify(route))});
+	$("kml").writeAttribute({href: "download.php?format=kml&route=" + escape(JSON.stringify(route))});
 }
 
 function XCUnload() {

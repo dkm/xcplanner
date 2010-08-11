@@ -2,6 +2,21 @@
 
 require_once("config.php");
 
+function view_escape($value)
+{
+  return empty($value)?"":htmlspecialchars($value, ENT_QUOTES);
+}
+
+function view_render($name, $params = array())
+{
+  ob_start();
+  ob_implicit_flush(false);
+  $rendering = 1;
+  extract($params);
+  require dirname(__FILE__).'/templates/'.$name.'.php';
+  return ob_get_clean();
+}
+
 function get_elevation_srtm_tile($lat, $lng) {
 	global $SRTM_TILE_DIR;
 	$x = intval(1200 * ($lng + 185) + 0.5);
@@ -76,5 +91,3 @@ function get_elevation_combined($lat, $lng) {
 	}
 	return get_elevation_usgs($lat, $lng);
 }
-
-?>

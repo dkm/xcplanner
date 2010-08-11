@@ -1,11 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<?php if (!isset($rendering)) die();?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<title>XC Planner</title>
 		<link rel="stylesheet" href="css/xcplanner.css" type="text/css"/>
 		<link rel="icon" href="favicon.ico" type="image/png"/>
-		<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key={$GOOGLE_MAPS_API_KEY}" type="text/javascript"></script>
+		<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;key=<?php echo $GOOGLE_MAPS_API_KEY; ?>" type="text/javascript"></script>
 		<script src="js/jscoord-1.1.1.js" type="text/javascript"></script>
 		<script src="js/json2.js" type="text/javascript"></script>
 		<script src="js/mapiconmaker.js" type="text/javascript"></script>
@@ -37,26 +37,27 @@
 			<b>Save:</b>
 			<a id="link">link</a>
 			<a id="gpx">gpx</a>
+			<a id="kml">kml</a>
 			<hr/>
 			<b>Preferences:</b>
 			<table>
-				<tr{if !$XCONTEST} style="display: none"{/if}>
+				<tr<?php if (!$XCONTEST) :?> style="display: none"<?php endif; ?>>
 					<td><label for="airspace">XContest airspace:</label></td>
 					<td><input id="airspace" type="checkbox" onchange="XCUpdateAirspace();"/></td>
 				</tr>
-				<tr{if !$XCONTEST} style="display: none"{/if}>
+				<tr<?php if (!$XCONTEST) :?> style="display: none"<?php endif; ?>>
 					<td><label for="corr">XContest SkyWays:</label></td>
 					<td><input id="corr" type="checkbox" onchange="XCUpdateCorr();"/></td>
 				</tr>
-				<tr{if !$LEONARDO} style="display: none"{/if}>
+				<tr<?php if (!$LEONARDO) :?> style="display: none"<?php endif; ?>>
 					<td><label for="takeoffs">Leonardo takeoffs:</label></td>
-					<td><input id="takeoffs" type="checkbox" onchange="XCToggleTakeoffs();"/></td>
+					<td><input id="takeoffs" type="checkbox" onchange="XCUpdateTakeoffs();"/></td>
 				</tr>
 				<tr>
 					<td><label for="faiSectors">FAI triangle areas:</label></td>
 					<td><input id="faiSectors" type="checkbox" checked="yes" onchange="XCUpdateRoute();" value="true"/></td>
 				</tr>
-				<tr{if !$ELEVATION} style="display: none"{/if}>
+				<tr<?php if (!$ELEVATION) :?> style="display: none"<?php endif; ?>>
 					<td><label for="elevation">Elevations:</label></td>
 					<td><input id="elevation" type="checkbox" onchange="XCToggleElevations();"/></td>
 				</tr>
@@ -78,14 +79,14 @@
 					<td><label for="distanceUnit">Distance unit:</label></td>
 					<td><select id="distanceFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
-				<tr{if !$ELEVATION} style="display: none"{/if}>
+				<tr<?php if (!$ELEVATION) :?> style="display: none"<?php endif; ?>>
 					<td><label for="elevationUnit">Elevation unit:</label></td>
 					<td><select id="elevationFormat" onchange="XCUpdateRoute();"></select></td>
 				</tr>
 			</table>
 			<hr/>
 			<p>XC Planner Copyright &copy; 2009, 2010 Tom Payne &lt;<a href="mailto:twpayne@gmail.com">twpayne@gmail.com</a>&gt;</p>
-			<p{if !$XCONTEST} style="display: none"{/if}>XContest Airspace and SkyWays data &copy; XContest 2008, 2009</p>
+			<p<?php if (!$XCONTEST) :?> style="display: none"<?php endif; ?>>XContest Airspace and SkyWays data &copy; XContest 2008, 2009</p>
 			<p><a href="http://github.com/twpayne/xcplanner/">http://github.com/twpayne/xcplanner/</a></p>
 			<p>Thanks to:
 				Manolis Andreadakis &middot;
@@ -96,10 +97,10 @@
 				Jonty Lawson &middot;
 				Marc Poulhies
 			</p>
-			<input id="defaultLocation" type="hidden" value="{$location|escape}"/>
-			<input id="defaultFlightType" type="hidden" value="{$flightType|escape}"/>
-			<input id="defaultTurnpoints" type="hidden" value="{$turnpoints|escape}"/>
-			<input id="defaultStart" type="hidden" value="{$start|escape}"/>
+			<input id="defaultLocation" type="hidden" value="<?php echo view_escape($location); ?>"/>
+      <input id="defaultFlightType" type="hidden" value="<?php echo view_escape($flightType); ?>"/>
+			<input id="defaultTurnpoints" type="hidden" value="<?php echo view_escape($turnpoints); ?>"/>
+			<input id="defaultStart" type="hidden" value="<?php echo view_escape($start); ?>"/>
 		</div>
 		<div id="right">
 			<div id="map"></div>
